@@ -55,7 +55,6 @@ const MATERIALS = [
     "pillows",
 ];
 
-const GENDERS = ["unspecified", "female", "male"];
 const DURATION_LIMITS = [0, 5, 10, 15]; // minutes, 0 means no limit
 const ENVIRONMENT_PREFS = ["either", "home", "outdoors"];
 const INTENSITY_PREFS = ["either", "calm", "active"];
@@ -155,6 +154,8 @@ const STRINGS = {
         close: "Закрыть",
         delete: "Удалить",
         edit: "Изменить",
+        clear: "Очистить",
+        yes: "Да",
         storageError: "Не удалось сохранить данные: в браузере закончилось место.",
 
         /* --- Today --- */
@@ -232,6 +233,7 @@ const STRINGS = {
         age: "Возраст",
         name: "Имя",
         birthDate: "Дата рождения",
+        dueDate: "Предполагаемая дата родов (необязательно)",
         gender: "Пол (необязательно)",
         genderTitle: "Пол",
         genders: {unspecified: "Не указан", female: "Девочка", male: "Мальчик"},
@@ -413,7 +415,28 @@ const STRINGS = {
 const S = STRINGS[LANG];
 
 // ==========================================================================
-// 3. HELPERS
+// 3. STATE
+// ==========================================================================
+
+let data;
+let catalogue = [];
+let catalogueError = false;
+let todayRec = null;
+
+let currentPage = "today";
+let historyFilter = "all";
+let historyAreaFilter = "";
+let activityArea = "";
+let draft = null;
+
+let editedChild = null;
+let formGender = "unspecified";
+
+let openedSheet = null;
+let onModalYes = null;
+
+// ==========================================================================
+// 4. HELPERS
 // ==========================================================================
 
 const $ = (id) => document.getElementById(id);
@@ -485,6 +508,33 @@ const el = (tag, props, ...children) => {
 
 const normalize = (text) => text.toLowerCase().replaceAll("ё", "е");
 
+const debounce = (fn, ms) => {
+    let timer = null;
+    let lastArgs = [];
+    const call = (...args) => {
+        lastArgs = args;
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+    };
+    call.flush = () => {
+        if (timer === null) return;
+        clearTimeout(timer);
+        timer = null;
+        fn(...lastArgs);
+    };
+    return call;
+};
+
+const icon = (name, className = "tool") => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", className);
+    svg.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", `sprite.svg#${name}`);
+    svg.append(use);
+    return svg;
+};
+
 const capitalize = (text) => text.charAt(0).toLocaleUpperCase(S.locale) + text.slice(1);
 
 // "Сегодня", "Вчера" or a date; the year only when it is not the current one
@@ -503,15 +553,24 @@ const phrase = (parts) =>
         .join(", ");
 
 // ==========================================================================
-// 4. DOM ELEMENTS
+// 5. DOM ELEMENTS
 // ==========================================================================
+
+/* --- Pages and navigation --- */
+const pages = {
+    today: $("today-page"),
+    activities: $("activities-page"),
+    history: $("history-page"),
+    child: $("child-page"),
+    settings: $("settings-page"),
+};
+
+const nav = $("nav");
+const navButtons = [...nav.querySelectorAll("button")];
 
 const header = $("top");
 const childSelect = $("child-select");
 const childAge = $("child-age");
-
-const nav = $("nav");
-const navButtons = [...nav.querySelectorAll("button")];
 
 /* --- Today --- */
 const todayDate = $("today-date");
@@ -528,8 +587,8 @@ const openCatalogue = $("open-catalogue");
 const changeConditions = $("change-conditions");
 
 /* --- History --- */
-const historyFilterChips = $("history-filter");
-const historyArea = $("history-area");
+const historyFilterSegment = $("history-filter");
+const historyAreaChips = $("history-area");
 const historyList = $("history-list");
 const historyEmpty = $("history-empty");
 
@@ -541,6 +600,7 @@ const resetPreferencesButton = $("reset-preferences");
 const deleteAllButton = $("delete-all");
 
 /* --- Child --- */
+const childPageTitle = $("child-page-title");
 const childNone = $("child-none");
 const childProfile = $("child-profile");
 const childInfo = $("child-info");
@@ -554,8 +614,9 @@ const conditionIntensity = $("condition-intensity");
 const conditionMaterials = $("condition-materials");
 
 /* --- Feedback --- */
-const feedbackDialog = $("feedback-dialog");
-const feedbackForm = $("feedback-form");
+const feedbackSheet = $("feedback-sheet");
+const feedbackSave = $("feedback-save");
+const feedbackCancel = $("feedback-cancel");
 const fbStatus = $("fb-status");
 const fbObserved = $("fb-observed");
 const fbInterest = $("fb-interest");
@@ -566,7 +627,8 @@ const fbComment = $("fb-comment");
 
 /* --- Activities --- */
 const searchInput = $("search");
-const filterArea = $("filter-area");
+const searchClear = $("search-clear");
+const filterAreaChips = $("filter-area");
 const filterAge = $("filter-age");
 const filterDuration = $("filter-duration");
 const filterInterest = $("filter-interest");
@@ -575,46 +637,57 @@ const activityList = $("activity-list");
 const activityEmpty = $("activity-empty");
 
 /* --- Activity details --- */
-const activityDialog = $("activity-dialog");
+const activitySheet = $("activity-sheet");
 const activityBody = $("activity-body");
 
 /* --- Child form --- */
-const childDialog = $("child-dialog");
-const childForm = $("child-form");
+const childSheet = $("child-sheet");
 const childFormTitle = $("child-form-title");
 const childNameInput = $("child-name-input");
 const childBirthInput = $("child-birth-input");
+const childDueInput = $("child-due-input");
 const childGender = $("child-gender");
+const childSave = $("child-save");
+const childCancel = $("child-cancel");
 
-/* --- Confirmation --- */
-const confirmDialog = $("confirm-dialog");
-const confirmText = $("confirm-text");
-const confirmYes = $("confirm-yes");
-const confirmNo = $("confirm-no");
+/* --- Overlay and modal --- */
+const overlay = $("overlay");
+const modal = $("modal");
+const question = $("question");
+const modalYes = $("modal-yes");
+const modalNo = $("modal-no");
 
 // ==========================================================================
-// 5. LANGUAGE
+// 6. LANGUAGE
 // ==========================================================================
 
 const translatePage = () => {
     document.documentElement.lang = LANG;
     document.title = S.appName;
+
     document
         .querySelectorAll("[data-i18n]")
         .forEach((node) => (node.textContent = S[node.dataset.i18n]));
     document
-        .querySelectorAll("[data-i18n-label]")
-        .forEach((node) => node.setAttribute("aria-label", S[node.dataset.i18nLabel]));
+        .querySelectorAll("[data-i18n-aria-label]")
+        .forEach((node) =>
+            node.setAttribute("aria-label", S[node.dataset.i18nAriaLabel]),
+        );
     document
         .querySelectorAll("[data-i18n-placeholder]")
         .forEach((node) => (node.placeholder = S[node.dataset.i18nPlaceholder]));
+
+    historyFilterSegment
+        .querySelectorAll("button")
+        .forEach((button) => (button.textContent = S.historyFilters[button.dataset.filter]));
+    childGender
+        .querySelectorAll("button")
+        .forEach((button) => (button.textContent = S.genders[button.dataset.gender]));
 };
 
 // ==========================================================================
-// 6. STORAGE
+// 7. STORAGE
 // ==========================================================================
-
-let data;
 
 const emptyData = () => ({
     version: DATA_VERSION,
@@ -662,7 +735,7 @@ const isValidImport = (d) =>
     Number.isInteger(d?.version) &&
     d.version <= DATA_VERSION &&
     DATA_LISTS.every((key) => Array.isArray(d[key])) &&
-    d.children.every((c) => c.id && c.name && DATE_PATTERN.test(c.birthDate) && Array.isArray(c.skills) && c.conditions) &&
+    d.children.every((c) => c.id && c.name && DATE_PATTERN.test(c.birthDate) && (!c.dueDate || DATE_PATTERN.test(c.dueDate)) && Array.isArray(c.skills) && c.conditions) &&
     d.recommendations.every((r) => r.childId && r.activityId && DATE_PATTERN.test(r.date) && typeof r.createdAt === "string") &&
     d.preferences.every((p) => PREFERENCE_KINDS.includes(p.kind));
 
@@ -681,7 +754,121 @@ const deleteAllData = () => {
 };
 
 // ==========================================================================
-// 7. PROFILE
+// 8. UI COMPONENTS
+// ==========================================================================
+
+// Re-renders a group of buttons and keeps keyboard focus on the same position
+const replaceButtons = (container, buttons) => {
+    const focused = [...container.children].indexOf(document.activeElement);
+    container.replaceChildren(...buttons);
+    container.children[focused]?.focus();
+};
+
+// Chips for single or multiple choice
+const renderChoices = (container, options, labels, isSelected, onSelect) =>
+    replaceButtons(
+        container,
+        options.map((option) => {
+            const button = el("button", {
+                type: "button",
+                className: isSelected(option) ? "tap chip selected" : "tap chip",
+                textContent: labels[option],
+                onclick: () => onSelect(option),
+            });
+            button.setAttribute("aria-pressed", String(isSelected(option)));
+            return button;
+        }),
+    );
+
+const renderAreaChoices = (container, value, onSelect) =>
+    renderChoices(
+        container,
+        ["", ...AREAS],
+        {"": S.allAreas, ...S.areas},
+        (area) => area === value,
+        onSelect,
+    );
+
+/* --- Segments --- */
+
+const setSegment = (segment, value, attr) => {
+    const buttons = [...segment.querySelectorAll("button")];
+    const i = Math.max(
+        0,
+        buttons.findIndex((button) => button.dataset[attr] === String(value)),
+    );
+    segment.style.setProperty("--n", String(buttons.length));
+    segment.style.setProperty("--i", String(i));
+    buttons.forEach((button, j) => {
+        button.classList.toggle("active", j === i);
+        button.setAttribute("aria-pressed", String(j === i));
+    });
+};
+
+const onSegment = (segment, attr, callback) => {
+    segment.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button || button.classList.contains("active")) return;
+        setSegment(segment, button.dataset[attr], attr);
+        callback(button.dataset[attr]);
+    });
+};
+
+/* --- Sheets and modal --- */
+
+const openSheet = (sheet) => {
+    closeSheet();
+    openedSheet = sheet;
+    overlay.classList.add("open");
+    openedSheet.classList.add("open");
+};
+
+const closeSheet = () => {
+    if (!openedSheet) return;
+    openedSheet.classList.remove("open");
+    overlay.classList.remove("open");
+    openedSheet = null;
+};
+
+overlay.onclick = closeSheet;
+
+const showModal = (text, onYes = null, yesLabel = null) => {
+    question.textContent = text;
+    onModalYes = onYes;
+    modalYes.textContent = yesLabel || (onYes ? S.yes : "OK");
+    modalNo.classList.toggle("hidden", !onYes);
+    modal.hidden = false;
+};
+
+const showMessage = (text) => showModal(text);
+
+const closeModal = () => {
+    modal.hidden = true;
+    onModalYes = null;
+};
+
+modalYes.onclick = () => {
+    const callback = onModalYes;
+    closeModal();
+    callback?.();
+};
+modalNo.onclick = closeModal;
+modal.onclick = (event) => {
+    if (event.target === modal) closeModal();
+};
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!modal.hidden) closeModal();
+    else closeSheet();
+});
+
+document.querySelectorAll(".sheet .close").forEach((button) => {
+    button.onclick = closeSheet;
+});
+
+// ==========================================================================
+// 9. PROFILE
 // ==========================================================================
 
 const activeChild = () => data.children.find((c) => c.id === data.activeChildId);
@@ -749,11 +936,8 @@ const toggleInterest = (child, tag) =>
     });
 
 // ==========================================================================
-// 8. CATALOGUE
+// 10. CATALOGUE
 // ==========================================================================
-
-let catalogue = [];
-let catalogueError = false;
 
 const isComplete = (activity) =>
     REQUIRED_FIELDS.every((key) => activity[key] != null && activity[key] !== "") &&
@@ -775,7 +959,7 @@ const findActivity = (id) => catalogue.find((a) => a.id === id);
 const isAvailable = (activity) => activity?.enabled === true && activity.safetyReviewed === true;
 
 // ==========================================================================
-// 9. RECOMMENDATIONS
+// 11. RECOMMENDATIONS
 // ==========================================================================
 
 const tagsOf = (a) => [...a.areas, ...a.skillTags, ...a.interestTags];
@@ -952,7 +1136,7 @@ const replaceRecommendation = (child, current) => {
 };
 
 // ==========================================================================
-// 10. FEEDBACK
+// 12. FEEDBACK
 // ==========================================================================
 
 const feedbackFor = (recId) => data.feedback.findLast((f) => f.recommendationId === recId);
@@ -1002,54 +1186,7 @@ const resetInferredPreferences = (childId) =>
     });
 
 // ==========================================================================
-// 11. UI COMPONENTS
-// ==========================================================================
-
-// Re-renders a group of buttons and keeps keyboard focus on the same position
-const replaceButtons = (container, buttons) => {
-    const focused = [...container.children].indexOf(document.activeElement);
-    container.replaceChildren(...buttons);
-    container.children[focused]?.focus();
-};
-
-// Chips for single or multiple choice
-const renderChoices = (container, options, labels, isSelected, onSelect) =>
-    replaceButtons(
-        container,
-        options.map((option) =>
-            el("button", {
-                type: "button",
-                className: isSelected(option) ? "tap selected" : "tap",
-                ariaPressed: isSelected(option),
-                textContent: labels[option],
-                onclick: () => onSelect(option),
-            }),
-        ),
-    );
-
-let onConfirm = null;
-
-const confirmAction = (text, yesLabel, action) => {
-    confirmText.textContent = text;
-    confirmYes.textContent = yesLabel;
-    confirmNo.classList.toggle("hidden", !action);
-    onConfirm = action;
-    confirmDialog.returnValue = "";
-    confirmDialog.showModal();
-};
-
-const showMessage = (text) => confirmAction(text, "OK", null);
-
-confirmDialog.onclose = () => {
-    if (confirmDialog.returnValue === "yes") onConfirm?.();
-};
-
-document.querySelectorAll("dialog .close").forEach((button) => {
-    button.onclick = () => button.closest("dialog").close();
-});
-
-// ==========================================================================
-// 12. HEADER
+// 13. HEADER
 // ==========================================================================
 
 const renderHeader = () => {
@@ -1068,10 +1205,8 @@ childSelect.onchange = () => {
 };
 
 // ==========================================================================
-// 13. TODAY
+// 14. TODAY
 // ==========================================================================
-
-let todayRec = null;
 
 // An older child is the one case the generic explanation does not cover
 const emptyReason = (child) => {
@@ -1128,12 +1263,10 @@ todayAnother.onclick = () => {
 
 todayDetails.onclick = () => openActivity(findActivity(todayRec.activityId));
 
-openCatalogue.onclick = () => showPage("activities");
-changeConditions.onclick = () => showPage("child");
+openCatalogue.onclick = () => renderPage("activities");
+changeConditions.onclick = () => renderPage("child");
 
 /* --- Feedback form --- */
-
-let draft = null;
 
 const renderFeedbackForm = () => {
     const pick = (key) => (value) => {
@@ -1152,10 +1285,10 @@ const openFeedback = () => {
     draft = {status: "completed", interest: "not_observed", difficulty: "not_observed", reason: null};
     fbComment.value = "";
     renderFeedbackForm();
-    feedbackDialog.showModal();
+    openSheet(feedbackSheet);
 };
 
-feedbackForm.onsubmit = () => {
+const saveFeedbackForm = () => {
     const skipped = draft.status === "skipped";
     saveFeedback(todayRec, {
         status: draft.status,
@@ -1164,11 +1297,15 @@ feedbackForm.onsubmit = () => {
         reason: NEEDS_REASON.includes(draft.status) ? draft.reason : null,
         comment: fbComment.value.trim() || null,
     });
+    closeSheet();
     renderToday();
 };
 
+feedbackSave.onclick = saveFeedbackForm;
+feedbackCancel.onclick = closeSheet;
+
 // ==========================================================================
-// 14. ACTIVITY DETAILS
+// 15. ACTIVITY DETAILS
 // ==========================================================================
 
 const block = (title, content, className = "") =>
@@ -1210,14 +1347,14 @@ const externalLinks = (links) =>
             ),
     );
 
-// Full details for the dialog, a compact version for the Today screen
+// Full details for the sheet, a compact version for the Today screen
 const activityContent = (a, full) =>
     [
         full &&
             !isAvailable(a) &&
             el("p", {className: "warning", textContent: a.enabled ? S.notReviewedNote : S.disabledNote}),
         areaMarks(a),
-        el(full ? "h2" : "h1", {textContent: a.title}),
+        el("h1", {textContent: a.title}),
         el("p", {className: "lead", textContent: a.description}),
         facts([
             [S.goal, a.goal],
@@ -1239,20 +1376,17 @@ const activityContent = (a, full) =>
 
 const openActivity = (activity) => {
     activityBody.replaceChildren(...activityContent(activity, true));
-    activityDialog.showModal();
     activityBody.scrollTop = 0;
+    openSheet(activitySheet);
 };
 
 // ==========================================================================
-// 15. ACTIVITIES
+// 16. ACTIVITIES
 // ==========================================================================
 
 const option = (value, textContent) => el("option", {value, textContent});
 
-const areaOptions = () => [option("", S.allAreas), ...AREAS.map((area) => option(area, S.areas[area]))];
-
 const fillFilters = () => {
-    filterArea.append(...areaOptions());
     filterAge.append(
         option("", S.anyAge),
         option("child", S.childAgeFilter),
@@ -1274,10 +1408,10 @@ const activityItem = (a) =>
         {},
         el(
             "button",
-            {className: "item", onclick: () => openActivity(a)},
+            {className: "entry", onclick: () => openActivity(a)},
             el(
                 "span",
-                {className: "item-title"},
+                {className: "entry-title"},
                 el("span", {textContent: a.title}),
                 !isAvailable(a) && el("span", {className: "badge", textContent: a.enabled ? S.notReviewed : S.disabled}),
             ),
@@ -1291,13 +1425,18 @@ const renderActivities = () => {
     filterAge.options[1].disabled = !child;
     if (!child && filterAge.value === "child") filterAge.value = "";
 
+    renderAreaChoices(filterAreaChips, activityArea, (area) => {
+        activityArea = area;
+        renderActivities();
+    });
+
     const query = normalize(searchInput.value.trim());
     const range = ageFilterRange(child);
     const duration = Number(filterDuration.value);
     const list = catalogue.filter(
         (a) =>
             normalize(a.title).includes(query) &&
-            (!filterArea.value || a.areas.includes(filterArea.value)) &&
+            (!activityArea || a.areas.includes(activityArea)) &&
             (!range || (a.ageMinMonths <= range[1] && a.ageMaxMonths >= range[0])) &&
             (!duration || a.duration <= duration) &&
             (!filterInterest.value || a.interestTags.includes(filterInterest.value)),
@@ -1309,12 +1448,27 @@ const renderActivities = () => {
         : S.catalogueStatus(catalogue.filter(isAvailable).length, catalogue.length);
 };
 
-[searchInput, filterArea, filterAge, filterDuration, filterInterest].forEach((input) => {
+searchInput.addEventListener(
+    "input",
+    debounce(() => {
+        searchClear.classList.toggle("hidden", !searchInput.value);
+        renderActivities();
+    }, 150),
+);
+
+searchClear.onclick = () => {
+    searchInput.value = "";
+    searchClear.classList.add("hidden");
+    renderActivities();
+    searchInput.focus();
+};
+
+[filterAge, filterDuration, filterInterest].forEach((input) => {
     input.oninput = renderActivities;
 });
 
 // ==========================================================================
-// 16. CHILD
+// 17. CHILD
 // ==========================================================================
 
 const renderSkills = (child) =>
@@ -1329,7 +1483,14 @@ const renderSkills = (child) =>
             return el(
                 "details",
                 {},
-                el("summary", {}, el("span", {textContent: S.areas[area]}), count),
+                el(
+                    "summary",
+                    {},
+                    icon("plus", "plus"),
+                    icon("minus", "minus"),
+                    el("span", {textContent: S.areas[area]}),
+                    count,
+                ),
                 ...SKILLS[area].map((id) =>
                     el(
                         "label",
@@ -1367,16 +1528,20 @@ const renderInterests = (child) =>
         interestsList,
         INTERESTS.map((tag) => {
             const state = interestState(findPreference(child.id, "interest", tag));
-            return el("button", {
+            const button = el("button", {
                 type: "button",
-                className: `tap ${{like: "selected", dislike: "excluded"}[state] ?? ""}`,
-                ariaLabel: state ? `${S.interests[tag]}: ${S.interestStates[state]}` : S.interests[tag],
+                className: `tap chip ${state === "like" ? "selected" : state === "dislike" ? "red" : ""}`,
                 textContent: S.interests[tag] + ({inferredLike: " ↑", inferredDislike: " ↓"}[state] ?? ""),
                 onclick: () => {
                     toggleInterest(child, tag);
                     renderInterests(child);
                 },
             });
+            button.setAttribute(
+                "aria-label",
+                state ? `${S.interests[tag]}: ${S.interestStates[state]}` : S.interests[tag],
+            );
+            return button;
         }),
     );
 
@@ -1396,6 +1561,7 @@ const renderConditions = (child) => {
 
 const renderChild = () => {
     const child = activeChild();
+    childPageTitle.textContent = child ? S.profileTitle : S.child;
     childNone.classList.toggle("hidden", !!child);
     childProfile.classList.toggle("hidden", !child);
     if (!child) return;
@@ -1414,41 +1580,245 @@ const renderChild = () => {
 
 childDelete.onclick = () => {
     const child = activeChild();
-    confirmAction(S.deleteChildQuestion(child.name), S.delete, () => {
-        deleteChild(child.id);
-        render();
-    });
+    showModal(
+        S.deleteChildQuestion(child.name),
+        () => {
+            deleteChild(child.id);
+            render();
+        },
+        S.delete,
+    );
 };
 
 /* --- Child form --- */
 
-let editedChild = null;
-let formGender = "unspecified";
+const YY = new Date().getFullYear() % 100;
 
-const renderGender = () =>
-    renderChoices(childGender, GENDERS, S.genders, (g) => g === formGender, (g) => {
-        formGender = g;
-        renderGender();
+// Masked DD.MM.YYYY input shared by the birth and due date fields.
+const createDateInput = (input, onChange, allowFuture = false) => {
+    const value = {digits: "", cursor: 0};
+
+    const text = () => {
+        if (!value.digits) return "";
+        const d = value.digits.slice(0, 2) + (value.digits.length >= 2 ? "." : "");
+        const m = value.digits.slice(2, 4) + (value.digits.length >= 4 ? "." : "");
+        const y = value.digits.slice(4);
+        return d + m + y;
+    };
+
+    const normalize = () => {
+        if (value.cursor < value.digits.length)
+            value.digits = value.digits.slice(0, value.cursor);
+
+        if (+value.digits[0] > 3) value.digits = "0" + value.digits;
+
+        if (value.digits.length >= 2) {
+            const d = +value.digits.slice(0, 2);
+            if (d > 31) value.digits = "0" + value.digits;
+            else if (d === 0) value.digits = "01" + value.digits.slice(2);
+        }
+
+        if (value.digits.length >= 3 && +value.digits[2] > 1)
+            value.digits = value.digits.slice(0, 2) + "0" + value.digits.slice(2);
+
+        if (value.digits.length >= 4) {
+            const d = value.digits.slice(0, 2);
+            const m = +value.digits.slice(2, 4);
+            if (m > 12) value.digits = d + "0" + value.digits.slice(2);
+            else if (m === 0) value.digits = d + "01" + value.digits.slice(4);
+        }
+
+        if (value.digits.length >= 6) {
+            const y = value.digits.slice(4, 6);
+            if (y !== "19" && y !== "20") {
+                value.digits = value.digits.slice(0, 4) + (+y <= YY ? "20" : "19") + y;
+            }
+        }
+
+        value.digits = value.digits.slice(0, 8);
+        value.cursor = value.digits.length;
+    };
+
+    const setValue = () => {
+        input.value = text();
+        let p = value.cursor;
+        if (value.cursor >= 2) p++;
+        if (value.cursor >= 4) p++;
+        p = Math.min(p, input.value.length);
+        input.setSelectionRange(p, p);
+        onChange();
+    };
+
+    const position = (p) => input.value.slice(0, p).replace(/\D/g, "").length;
+
+    const set = (date) => {
+        value.digits = date ? date.slice(8, 10) + date.slice(5, 7) + date.slice(0, 4) : "";
+        value.cursor = value.digits.length;
+        setValue();
+    };
+
+    const get = () => {
+        if (value.digits.length !== 8) return null;
+
+        const d = +value.digits.slice(0, 2);
+        const m = +value.digits.slice(2, 4);
+        const y = +value.digits.slice(4, 8);
+        const date = new Date(y, m - 1, d);
+
+        if (
+            date.getFullYear() !== y ||
+            date.getMonth() !== m - 1 ||
+            date.getDate() !== d ||
+            (!allowFuture && date > new Date())
+        )
+            return null;
+
+        return dateKey(date);
+    };
+
+    input.addEventListener("beforeinput", (e) => {
+        if (e.inputType === "insertText" && e.data === ".") {
+            e.preventDefault();
+            if (value.cursor === 1) {
+                value.digits = "0" + value.digits;
+                value.cursor = 2;
+                setValue();
+            } else if (value.cursor === 3) {
+                value.digits =
+                    value.digits.slice(0, 2) + "0" + value.digits.slice(2);
+                value.cursor = 4;
+                setValue();
+            }
+            return;
+        }
+
+        if (e.inputType === "insertText" || e.inputType === "insertFromPaste") {
+            e.preventDefault();
+            const p = (e.data || "").replace(/\D/g, "");
+            if (!p || value.cursor >= 8) return;
+
+            value.digits =
+                value.digits.slice(0, value.cursor) +
+                p +
+                value.digits.slice(value.cursor);
+            value.cursor += p.length;
+            normalize();
+            setValue();
+            return;
+        }
+
+        if (e.inputType === "deleteContentBackward") {
+            e.preventDefault();
+            if (!value.cursor) return;
+
+            if (value.cursor === 8 && value.digits.length === 8) {
+                const y = value.digits.slice(4);
+                if (y.slice(0, 2) !== "19" && y.slice(0, 2) !== "20") {
+                    value.digits = value.digits.slice(0, 4) + y.slice(2);
+                    value.cursor = 6;
+                    setValue();
+                    return;
+                }
+            }
+
+            value.digits =
+                value.digits.slice(0, value.cursor - 1) +
+                value.digits.slice(value.cursor);
+            value.cursor--;
+            normalize();
+            setValue();
+        }
     });
+
+    input.addEventListener("click", () => {
+        value.cursor = position(input.selectionStart);
+    });
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            value.cursor = Math.max(0, value.cursor - 1);
+            setValue();
+        }
+        if (e.key === "ArrowRight") {
+            e.preventDefault();
+            value.cursor = Math.min(8, value.cursor + 1);
+            setValue();
+        }
+    });
+
+    input.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData("text").trim();
+        const parts = text.split(/[.\-/\s]+/);
+
+        if (parts.length >= 3) {
+            let [d, m, y] = parts;
+            d = d.replace(/\D/g, "");
+            m = m.replace(/\D/g, "");
+            y = y.replace(/\D/g, "");
+
+            if (d.length === 1) d = "0" + d;
+            if (m.length === 1) m = "0" + m;
+
+            if (y.length === 1) y = "200" + y;
+            else if (y.length === 2) y = (+y <= YY ? "20" : "19") + y;
+            else y = y.slice(0, 4);
+
+            value.digits = (d + m + y).slice(0, 8);
+        } else {
+            value.digits = text.replace(/\D/g, "").slice(0, 8);
+            normalize();
+        }
+
+        value.cursor = value.digits.length;
+        setValue();
+    });
+
+    return {set, get};
+};
+
+const birthdate = createDateInput(childBirthInput, () => updateChildSave());
+const duedate = createDateInput(childDueInput, () => updateChildSave(), true);
+
+const updateChildSave = () => {
+    const due = duedate.get();
+    childSave.disabled =
+        !childNameInput.value.trim() ||
+        !birthdate.get() ||
+        (!!childDueInput.value && !due);
+};
 
 const openChildForm = (child) => {
     editedChild = child;
     childFormTitle.textContent = child ? S.editChild : S.newChild;
     childNameInput.value = child?.name ?? "";
-    childBirthInput.value = child?.birthDate ?? "";
-    childBirthInput.max = dateKey();
+    birthdate.set(child?.birthDate);
+    duedate.set(child?.dueDate);
     formGender = child?.gender ?? "unspecified";
-    renderGender();
-    childDialog.showModal();
+    setSegment(childGender, formGender, "gender");
+    updateChildSave();
+    openSheet(childSheet);
 };
 
-childForm.onsubmit = () => {
-    const fields = {name: childNameInput.value.trim(), birthDate: childBirthInput.value, gender: formGender};
+const saveChild = () => {
+    if (childSave.disabled) return;
+    const fields = {
+        name: childNameInput.value.trim(),
+        birthDate: birthdate.get(),
+        dueDate: duedate.get(),
+        gender: formGender,
+    };
     if (editedChild) editChild(editedChild, fields);
     else createChild(fields);
+    closeSheet();
     render();
 };
 
+childSave.onclick = saveChild;
+childCancel.onclick = closeSheet;
+childNameInput.oninput = updateChildSave;
+onSegment(childGender, "gender", (value) => (formGender = value));
 childEdit.onclick = () => openChildForm(activeChild());
 
 document.querySelectorAll(".add-child").forEach((button) => {
@@ -1456,7 +1826,7 @@ document.querySelectorAll(".add-child").forEach((button) => {
 });
 
 // ==========================================================================
-// 17. HISTORY
+// 18. HISTORY
 // ==========================================================================
 
 const HISTORY_FILTERS = {
@@ -1464,8 +1834,6 @@ const HISTORY_FILTERS = {
     completed: (status) => status === "completed" || status === "partially_completed",
     skipped: (status) => ["not_completed", "skipped", "replaced"].includes(status),
 };
-
-let historyFilter = "all";
 
 const historyItem = (rec) => {
     const activity = findActivity(rec.activityId);
@@ -1475,41 +1843,44 @@ const historyItem = (rec) => {
         {},
         el(
             "button",
-            {className: "item", disabled: !activity, onclick: () => openActivity(activity)},
+            {className: "entry", disabled: !activity, onclick: () => openActivity(activity)},
             el("span", {
                 className: "help small",
                 textContent: formatDay(rec.date),
             }),
-            el("span", {className: "item-title", textContent: activity?.title ?? S.unknownActivity}),
+            el("span", {className: "entry-title", textContent: activity?.title ?? S.unknownActivity}),
             el("span", {className: "small", textContent: resultText(rec)}),
-            comment && el("span", {className: "help small item-quote", textContent: `«${comment}»`}),
+            comment && el("span", {className: "help small entry-quote", textContent: `«${comment}»`}),
         ),
     );
 };
 
 const renderHistory = () => {
     const child = activeChild();
-    renderChoices(historyFilterChips, Object.keys(HISTORY_FILTERS), S.historyFilters, (f) => f === historyFilter, (f) => {
-        historyFilter = f;
+    setSegment(historyFilterSegment, historyFilter, "filter");
+    renderAreaChoices(historyAreaChips, historyAreaFilter, (area) => {
+        historyAreaFilter = area;
         renderHistory();
     });
-    const area = historyArea.value;
     const items = data.recommendations
         .filter(
             (r) =>
                 r.childId === child?.id &&
                 HISTORY_FILTERS[historyFilter](feedbackFor(r.id)?.status ?? r.status) &&
-                (!area || findActivity(r.activityId)?.areas.includes(area)),
+                (!historyAreaFilter || findActivity(r.activityId)?.areas.includes(historyAreaFilter)),
         )
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     historyList.replaceChildren(...items.map(historyItem));
     historyEmpty.classList.toggle("hidden", items.length > 0);
 };
 
-historyArea.oninput = renderHistory;
+onSegment(historyFilterSegment, "filter", (value) => {
+    historyFilter = value;
+    renderHistory();
+});
 
 // ==========================================================================
-// 18. SETTINGS
+// 19. SETTINGS
 // ==========================================================================
 
 const renderSettings = () => {
@@ -1530,25 +1901,33 @@ importInput.onchange = async () => {
         imported = null;
     }
     if (!isValidImport(imported)) return showMessage(S.importError);
-    confirmAction(S.importQuestion, S.importConfirm, () => {
-        importData(imported);
-        showPage("today");
-    });
+    showModal(
+        S.importQuestion,
+        () => {
+            importData(imported);
+            renderPage("today");
+        },
+        S.importConfirm,
+    );
 };
 
 resetPreferencesButton.onclick = () => {
     const child = activeChild();
-    confirmAction(S.resetQuestion(child.name), S.resetConfirm, () => resetInferredPreferences(child.id));
+    showModal(S.resetQuestion(child.name), () => resetInferredPreferences(child.id), S.resetConfirm);
 };
 
 deleteAllButton.onclick = () =>
-    confirmAction(S.deleteAllQuestion, S.delete, () => {
-        deleteAllData();
-        showPage("today");
-    });
+    showModal(
+        S.deleteAllQuestion,
+        () => {
+            deleteAllData();
+            renderPage("today");
+        },
+        S.delete,
+    );
 
 // ==========================================================================
-// 19. NAVIGATION
+// 20. NAVIGATION
 // ==========================================================================
 
 const renderers = {
@@ -1559,42 +1938,46 @@ const renderers = {
     settings: renderSettings,
 };
 
-let currentPage = "today";
-
 const render = () => {
     renderHeader();
     renderers[currentPage]();
 };
 
-const showPage = (name) => {
+const renderPage = (name) => {
     currentPage = name;
+    Object.entries(pages).forEach(([key, section]) => {
+        section.classList.toggle("hidden", key !== name);
+    });
     navButtons.forEach((button) => {
         const active = button.dataset.page === name;
         button.classList.toggle("active", active);
         if (active) button.setAttribute("aria-current", "page");
         else button.removeAttribute("aria-current");
-        $(`${button.dataset.page}-page`).classList.toggle("hidden", !active);
     });
     window.scrollTo(0, 0);
     render();
 };
 
-nav.onclick = (e) => {
-    const button = e.target.closest("button");
-    if (button) showPage(button.dataset.page);
+nav.onclick = (event) => {
+    const button = event.target.closest("button");
+    if (button) renderPage(button.dataset.page);
 };
 
 // ==========================================================================
-// 20. INIT
+// 21. INIT
 // ==========================================================================
+
+document.querySelectorAll("input:not([type=file])").forEach((input) => {
+    input.setAttribute("readonly", "true");
+    input.addEventListener("focus", () => input.removeAttribute("readonly"));
+});
 
 (async () => {
     translatePage();
     fillFilters();
-    historyArea.append(...areaOptions());
     loadData();
     await loadCatalogue();
-    showPage("today");
+    renderPage("today");
     navigator.serviceWorker?.register("sw.js", {updateViaCache: "none"});
 
     // the date changes while the app stays open: refresh age and the daily screen

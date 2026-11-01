@@ -6,6 +6,7 @@ dst
 tmp
 dev
 doc
+boilerplate
 feature_graphic
 screenshots
 .env
