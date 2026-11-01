@@ -1,0 +1,818 @@
+/* ==========================================================================
+   1. ПЕРЕМЕННЫЕ
+   ========================================================================== */
+
+:root {
+    --bg: #f7f6f4;
+    --head: #ffffff;
+    --text: #3b3f44;
+    --icon: #5f646e;
+    --line: #e6e4e0;
+    --help: #6b6d71;
+
+    --accent: #5a62c2;
+    --red: #b5473a;
+    --caution: #85661a;
+    --caution-bg: #f3ecd9;
+
+    /* Кубики из иконки приложения: номера шагов и отметки областей развития */
+    --yellow: #c9a84c;
+    --blue: #7a82da;
+    --green: #4aaf8c;
+    --violet: #a184d6;
+    --pink: #e0879d;
+    --sky: #4fa9cc;
+
+    --radius: 12px;
+    --nav-height: calc(64px + env(safe-area-inset-bottom));
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --rounded: ui-rounded, "SF Pro Rounded", var(--font);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #262626;
+        --head: #303030;
+        --text: #d6d6d6;
+        --icon: #bcb6a6;
+        --line: #3f3f3f;
+        --help: #9d9d9d;
+
+        --accent: #c6a24a;
+        --red: #e2806f;
+        --caution: #dcc07a;
+        --caution-bg: #38331f;
+    }
+}
+
+/* ==========================================================================
+   2. СБРОС И БАЗА
+   ========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    color-scheme: light dark;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+a {
+    color: var(--accent);
+    text-underline-offset: 3px;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+svg {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: var(--icon);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+h1,
+h2 {
+    font-family: var(--rounded);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+h1 {
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 21px;
+    line-height: 1.25;
+}
+
+h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--help);
+}
+
+/* ==========================================================================
+   3. УТИЛИТЫ
+   ========================================================================== */
+
+.hidden {
+    display: none !important;
+}
+
+.help {
+    color: var(--help);
+}
+
+.small {
+    font-size: 15px;
+}
+
+.red {
+    color: var(--red);
+}
+
+/* Раскладка */
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+}
+
+.between {
+    justify-content: space-between;
+}
+
+.grow {
+    flex: 1;
+    min-width: 0;
+}
+
+.gap-5 {
+    gap: 5px;
+}
+
+.gap-10 {
+    gap: 10px;
+}
+
+.gap-15 {
+    gap: 15px;
+}
+
+.gap-20 {
+    gap: 20px;
+}
+
+.gap-30 {
+    gap: 30px;
+}
+
+/* ==========================================================================
+   4. ОБЩИЕ КОМПОНЕНТЫ
+   ========================================================================== */
+
+/* Кнопки */
+.primary,
+.secondary {
+    min-height: 50px;
+    padding: 0 22px;
+    border-radius: 25px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.primary {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.secondary {
+    border: 2px solid var(--accent);
+    color: var(--accent);
+}
+
+.link {
+    align-self: flex-start;
+    min-height: 44px;
+    color: var(--accent);
+    text-align: left;
+}
+
+.link.red {
+    color: var(--red);
+}
+
+.icon-button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -10px -10px -10px 0;
+    border-radius: 50%;
+}
+
+/* Чипы */
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tap {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--head);
+    font-size: 15px;
+    line-height: 1.2;
+}
+
+.tap.selected {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.tap.excluded {
+    color: var(--help);
+    text-decoration: line-through;
+}
+
+/* Поля ввода. Шрифт не меньше 16px, чтобы iOS не увеличивала страницу при касании. */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 14px;
+    color: var(--help);
+}
+
+.input {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--head);
+    font-size: 17px;
+    outline: 0;
+}
+
+.input:focus {
+    border-color: var(--accent);
+}
+
+textarea.input {
+    resize: vertical;
+}
+
+select.input,
+#child-select {
+    appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8b8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+/* Раскрывающиеся блоки */
+summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 50px;
+    border-bottom: 1px solid var(--line);
+    list-style: none;
+    cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::after {
+    content: "+";
+    margin-left: auto;
+    color: var(--help);
+    font-size: 20px;
+}
+
+details[open] summary::after {
+    content: "−";
+}
+
+details[open] {
+    padding-bottom: 8px;
+}
+
+/* Пары «название — значение» */
+.facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 16px;
+}
+
+.facts dt {
+    color: var(--help);
+}
+
+/* Области развития: цветной кубик и название */
+.areas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 15px;
+    color: var(--help);
+}
+
+.area {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.area::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--area);
+}
+
+.area-gross_motor { --area: var(--green); }
+.area-fine_motor { --area: var(--yellow); }
+.area-sensory { --area: var(--blue); }
+.area-cognitive { --area: var(--violet); }
+.area-communication { --area: var(--pink); }
+.area-social_emotional { --area: var(--sky); }
+
+/* Пометка о проверке безопасности */
+.badge {
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: var(--caution-bg);
+    color: var(--caution);
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   5. ДИАЛОГИ
+   ========================================================================== */
+
+body:has(dialog[open]) {
+    overflow: hidden;
+}
+
+dialog {
+    border: 0;
+    background: var(--bg);
+    color: var(--text);
+}
+
+dialog::backdrop {
+    background: #0006;
+}
+
+.sheet {
+    width: 100%;
+    max-width: 600px;
+    max-height: 92dvh;
+    margin: auto auto 0;
+    padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.modal {
+    width: calc(100% - 40px);
+    max-width: 420px;
+    margin: auto;
+    padding: 24px 20px 20px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+/* Полноэкранная шторка: панель с кнопкой закрытия и прокручиваемое содержимое */
+.sheet.full {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: env(safe-area-inset-top) 0 0;
+    border-radius: 0;
+}
+
+.sheet.full[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sheet-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 20px 0;
+}
+
+.sheet-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 20px max(24px, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 700px) {
+    .sheet,
+    .sheet.full {
+        height: auto;
+        max-height: 85dvh;
+        margin: auto;
+        border-radius: 20px;
+    }
+}
+
+/* Шторка выезжает в ответ на нажатие; без анимации, если её отключили в системе */
+@media (prefers-reduced-motion: no-preference) {
+    dialog[open] {
+        transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.24s;
+    }
+
+    dialog[open]::backdrop {
+        transition: opacity 0.24s;
+    }
+
+    @starting-style {
+        .sheet[open] {
+            transform: translateY(40px);
+            opacity: 0;
+        }
+
+        .modal[open] {
+            transform: scale(0.96);
+            opacity: 0;
+        }
+
+        dialog[open]::backdrop {
+            opacity: 0;
+        }
+    }
+}
+
+/* ==========================================================================
+   6. СТРАНИЦЫ
+   ========================================================================== */
+
+.page {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 20px calc(var(--nav-height) + 24px);
+}
+
+/* Шапка с выбором ребёнка */
+#top {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px 20px 0;
+}
+
+#top:not(.hidden) + main .page {
+    padding-top: 10px;
+}
+
+#child-select {
+    min-width: 0;
+    max-width: 70%;
+    padding: 0 26px 0 0;
+    border: 0;
+    background-color: transparent;
+    background-position: right 4px center;
+    font-family: var(--rounded);
+    font-size: 21px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+}
+
+/* Первый запуск */
+.hero-blocks {
+    width: 96px;
+    height: 96px;
+    margin: 12px 0 4px -8px;
+    stroke: none;
+}
+
+/* Сегодня */
+#today-date {
+    margin-bottom: 14px;
+}
+
+.actions {
+    position: sticky;
+    bottom: var(--nav-height);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 18px 0 12px;
+    background: linear-gradient(transparent, var(--bg) 18px);
+}
+
+.actions .row {
+    flex-wrap: wrap;
+}
+
+.actions button {
+    flex: 1 1 auto;
+}
+
+/* На узких экранах обе кнопки помещаются в одну строку и не закрывают шаги */
+@media (max-width: 360px) {
+    .actions button {
+        padding: 0 12px;
+        font-size: 16px;
+    }
+}
+
+.status {
+    align-self: flex-start;
+    padding: 4px 12px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+    color: var(--accent);
+    font-size: 15px;
+}
+
+/* Описание занятия */
+.activity {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.activity .areas + h1,
+.activity .areas + h2 {
+    margin-top: -8px;
+}
+
+.activity h2 {
+    font-size: 26px;
+    line-height: 1.2;
+}
+
+.lead {
+    font-size: 18px;
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Шаги — кубики с номерами: их удобно находить глазами, держа ребёнка на руках */
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    list-style: none;
+    counter-reset: step;
+}
+
+.steps li {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    font-size: 19px;
+    line-height: 1.45;
+    counter-increment: step;
+}
+
+.steps li::before {
+    content: counter(step);
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--block) 32%, var(--bg));
+    color: var(--text);
+    font-family: var(--rounded);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.steps li:nth-child(3n + 1) { --block: var(--yellow); }
+.steps li:nth-child(3n + 2) { --block: var(--blue); }
+.steps li:nth-child(3n) { --block: var(--green); }
+
+.bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 20px;
+}
+
+/* Безопасность — единственная выделенная панель на экране */
+.safety {
+    padding: 14px 16px 16px;
+    border-radius: var(--radius);
+    background: var(--caution-bg);
+}
+
+.safety h3 {
+    color: var(--caution);
+}
+
+.links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+}
+
+.links li {
+    display: flex;
+    flex-direction: column;
+}
+
+.warning {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--caution-bg);
+    color: var(--caution);
+    font-size: 15px;
+}
+
+/* Каталог и история */
+.filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.filters .input {
+    min-height: 46px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 16px;
+    text-overflow: ellipsis;
+}
+
+.list {
+    margin-top: 10px;
+    list-style: none;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+}
+
+.item:disabled {
+    cursor: default;
+}
+
+.item-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    font-family: var(--rounded);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.item-quote {
+    font-style: italic;
+}
+
+/* Профиль */
+.skill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    hyphens: auto;
+}
+
+.skill .input {
+    min-height: 42px;
+    padding: 6px 30px 6px 12px;
+    background-position: right 10px center;
+    font-size: 16px;
+}
+
+/* Настройки */
+.note {
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--head);
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+}
+
+.menu button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 54px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+}
+
+.menu button:last-child {
+    border-bottom: 0;
+}
+
+.menu .red svg {
+    stroke: var(--red);
+}
+
+/* ==========================================================================
+   7. НИЖНЯЯ НАВИГАЦИЯ
+   ========================================================================== */
+
+nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--nav-height);
+    padding: 6px max(8px, calc((100% - 600px) / 2)) env(safe-area-inset-bottom);
+    background: var(--head);
+    border-top: 1px solid var(--line);
+    border-radius: 20px 20px 0 0;
+}
+
+nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    color: var(--help);
+}
+
+nav .active {
+    color: var(--accent);
+}
+
+nav .active svg {
+    stroke: var(--accent);
+}

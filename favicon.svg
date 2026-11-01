@@ -1,0 +1,13 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+     stroke-linecap="round" stroke-linejoin="round" stroke="#3d9a78" stroke-width="2">
+    <polygon points="12 3 17 10 7 10" stroke="#4fa9ff"/>
+    <rect x="3" y="14" width="7" height="7" rx="1" stroke="#c9a84c"/>
+    <circle cx="17.5" cy="17.5" r="3.5" stroke="#e0879d"/>
+
+    <!-- красный   #b5473a-->
+    <!-- желтый   #c9a84c-->
+    <!-- зеленый   #4aaf8c-->
+    <!-- синий   #7a82da-->
+    <!-- pink   #e0879d-->
+    <!-- sky   #4fa9cc-->
+</svg>

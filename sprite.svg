@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+
+    <!-- ==========================================================
+         НАВИГАЦИЯ
+         ========================================================== -->
+
+    <symbol id="today" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+    </symbol>
+
+    <symbol id="activities" viewBox="0 0 24 24">
+        <polygon points="12 3 17 10 7 10"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <circle cx="17.5" cy="17.5" r="3.5"/>
+    </symbol>
+
+    <symbol id="history" viewBox="0 0 24 24">
+        <path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/>
+        <path d="M3 3.5v4h4"/>
+        <path d="M12 7.5V12l3 2"/>
+    </symbol>
+
+    <symbol id="child" viewBox="0 0 24 24">
+        <circle cx="12" cy="7" r="3.5"/>
+        <path d="M5.5 20.5c.5-4 3.2-6.5 6.5-6.5s6 2.5 6.5 6.5"/>
+    </symbol>
+
+    <symbol id="settings" viewBox="0 0 24 24">
+        <line x1="2" y1="6" x2="5" y2="6"/>
+        <line x1="11" y1="6" x2="22" y2="6"/>
+        <line x1="2" y1="18" x2="13" y2="18"/>
+        <line x1="19" y1="18" x2="22" y2="18"/>
+        <circle cx="8" cy="6" r="3"/>
+        <circle cx="16" cy="18" r="3"/>
+    </symbol>
+
+    <!-- Кубики из иконки приложения, для первого экрана -->
+    <symbol id="blocks" viewBox="128 124 256 264">
+        <rect x="200" y="132" width="112" height="112" rx="22" fill="#c9a84c"/>
+        <rect x="136" y="268" width="112" height="112" rx="22" fill="#7a82da"/>
+        <rect x="264" y="268" width="112" height="112" rx="22" fill="#4aaf8c"/>
+    </symbol>
+
+    <!-- ==========================================================
+         ДЕЙСТВИЯ
+         ========================================================== -->
+
+    <symbol id="close" viewBox="0 0 24 24">
+        <line x1="6" y1="6" x2="18" y2="18"/>
+        <line x1="18" y1="6" x2="6" y2="18"/>
+    </symbol>
+
+    <symbol id="download" viewBox="0 0 24 24">
+        <path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>
+    </symbol>
+
+    <symbol id="upload" viewBox="0 0 24 24">
+        <path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>
+    </symbol>
+
+    <symbol id="refresh" viewBox="0 0 24 24">
+        <path d="M17.8 8.4A6.4 6.4 0 0 0 6.5 6.3L5 8"/>
+        <path d="M5 4.5v3.7h3.7"/>
+        <path d="M6.2 15.6a6.4 6.4 0 0 0 11.3 2.1L19 16"/>
+        <path d="M19 19.5v-3.7h-3.7"/>
+    </symbol>
+
+    <symbol id="trash" viewBox="0 0 24 24">
+        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
+    </symbol>
+
+</svg>
