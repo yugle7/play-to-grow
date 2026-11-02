@@ -144,52 +144,77 @@
     </div>
 
     <div id="child-profile" class="col gap-30">
-        <section class="pad-20 col gap-10">
-            <div class="row">
-                <button id="child-edit" class="help small right" data-i18n="edit"></button>
-            </div>
-            <dl id="child-info" class="facts"></dl>
-        </section>
-
-        <section class="pad-20 col gap-10">
-            <h3 data-i18n="skillsTitle"></h3>
-            <p class="help small" data-i18n="skillsNote"></p>
-            <div id="skills"></div>
-        </section>
-
-        <section class="pad-20 col gap-10">
-            <h3 data-i18n="interestsTitle"></h3>
-            <p class="help small" data-i18n="interestsNote"></p>
-            <div id="interests" class="chips" role="group" data-i18n-aria-label="interestsTitle"></div>
-        </section>
-
-        <section class="pad-20 col gap-15">
-            <div class="col gap-5">
-                <h3 data-i18n="conditionsTitle"></h3>
-                <p class="help small" data-i18n="conditionsNote"></p>
+        <section class="pad-20 col gap-20">
+            <label class="field">
+                <span class="label" data-i18n="name"></span>
+                <input id="child-name-input" class="input" maxlength="40" autocomplete="off">
+            </label>
+            <div class="date-fields">
+                <label class="label" for="child-birth-input" data-i18n="birthDate"></label>
+                <label class="label" for="child-due-input" data-i18n="dueDate"></label>
+                <input id="child-birth-input" class="input mono" type="text" inputmode="numeric"
+                       placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
+                       spellcheck="false">
+                <input id="child-due-input" class="input mono" type="text" inputmode="numeric"
+                       placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
+                       spellcheck="false">
             </div>
             <div class="field">
-                <span class="label" data-i18n="durationLabel"></span>
-                <div id="condition-duration" class="chips" role="group" data-i18n-aria-label="durationLabel"></div>
+                <span class="label" data-i18n="gender"></span>
+                <div id="child-gender" class="segment" style="--n:3;--i:0" role="group"
+                     data-i18n-aria-label="gender">
+                    <button type="button" data-gender="unspecified"></button>
+                    <button type="button" data-gender="female"></button>
+                    <button type="button" data-gender="male"></button>
+                </div>
             </div>
-            <div class="field">
-                <span class="label" data-i18n="environmentLabel"></span>
-                <div id="condition-environment" class="chips" role="group" data-i18n-aria-label="environmentLabel"></div>
-            </div>
-            <div class="field">
-                <span class="label" data-i18n="intensityLabel"></span>
-                <div id="condition-intensity" class="chips" role="group" data-i18n-aria-label="intensityLabel"></div>
-            </div>
-            <div class="field">
-                <span class="label" data-i18n="materialsLabel"></span>
-                <div id="condition-materials" class="chips" role="group" data-i18n-aria-label="materialsLabel"></div>
+            <div class="row gap-10">
+                <button id="child-cancel" class="help small hidden" type="button" data-i18n="cancel"></button>
+                <button id="child-save" class="tap right" type="button" data-i18n="save" disabled></button>
             </div>
         </section>
 
-        <section class="pad-20 col gap-10">
-            <button class="tap add-child" data-i18n="addAnotherChild"></button>
-            <button id="child-delete" class="red" data-i18n="deleteChild"></button>
-        </section>
+        <div id="child-details" class="col gap-30">
+            <section class="pad-20 col gap-10">
+                <h3 data-i18n="skillsTitle"></h3>
+                <p class="help small" data-i18n="skillsNote"></p>
+                <div id="skills"></div>
+            </section>
+
+            <section class="pad-20 col gap-10">
+                <h3 data-i18n="interestsTitle"></h3>
+                <p class="help small" data-i18n="interestsNote"></p>
+                <div id="interests" class="chips" role="group" data-i18n-aria-label="interestsTitle"></div>
+            </section>
+
+            <section class="pad-20 col gap-15">
+                <div class="col gap-5">
+                    <h3 data-i18n="conditionsTitle"></h3>
+                    <p class="help small" data-i18n="conditionsNote"></p>
+                </div>
+                <div class="field">
+                    <span class="label" data-i18n="durationLabel"></span>
+                    <div id="condition-duration" class="chips" role="group" data-i18n-aria-label="durationLabel"></div>
+                </div>
+                <div class="field">
+                    <span class="label" data-i18n="environmentLabel"></span>
+                    <div id="condition-environment" class="chips" role="group" data-i18n-aria-label="environmentLabel"></div>
+                </div>
+                <div class="field">
+                    <span class="label" data-i18n="intensityLabel"></span>
+                    <div id="condition-intensity" class="chips" role="group" data-i18n-aria-label="intensityLabel"></div>
+                </div>
+                <div class="field">
+                    <span class="label" data-i18n="materialsLabel"></span>
+                    <div id="condition-materials" class="chips" role="group" data-i18n-aria-label="materialsLabel"></div>
+                </div>
+            </section>
+
+            <section class="pad-20 col gap-10">
+                <button class="tap add-child" data-i18n="addAnotherChild"></button>
+                <button id="child-delete" class="red" data-i18n="deleteChild"></button>
+            </section>
+        </div>
     </div>
 </section>
 
@@ -321,46 +346,6 @@
     <footer>
         <button id="feedback-cancel" class="right" data-i18n="cancel"></button>
         <button id="feedback-save" class="accent" data-i18n="save"></button>
-    </footer>
-</div>
-
-<div id="child-sheet" class="sheet" role="dialog" aria-modal="true">
-    <div class="row between">
-        <h3 id="child-form-title"></h3>
-        <button type="button" class="icon-button close" data-i18n-aria-label="close">
-            <svg class="tool">
-                <use href="sprite.svg#close"></use>
-            </svg>
-        </button>
-    </div>
-    <div class="sheet-scroll col gap-20">
-        <label class="field">
-            <span class="label" data-i18n="name"></span>
-            <input id="child-name-input" class="input" maxlength="40" autocomplete="off">
-        </label>
-        <div class="date-fields">
-            <label class="label" for="child-birth-input" data-i18n="birthDate"></label>
-            <label class="label" for="child-due-input" data-i18n="dueDate"></label>
-            <input id="child-birth-input" class="input mono" type="text" inputmode="numeric"
-                   placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
-                   spellcheck="false">
-            <input id="child-due-input" class="input mono" type="text" inputmode="numeric"
-                   placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
-                   spellcheck="false">
-        </div>
-        <div class="field">
-            <span class="label" data-i18n="gender"></span>
-            <div id="child-gender" class="segment" style="--n:3;--i:0" role="group"
-                 data-i18n-aria-label="gender">
-                <button type="button" data-gender="unspecified"></button>
-                <button type="button" data-gender="female"></button>
-                <button type="button" data-gender="male"></button>
-            </div>
-        </div>
-    </div>
-    <footer>
-        <button id="child-cancel" class="right" data-i18n="cancel"></button>
-        <button id="child-save" class="accent" data-i18n="save" disabled></button>
     </footer>
 </div>
 

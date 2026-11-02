@@ -857,6 +857,10 @@ nav .active > svg {
     gap: 4px 10px;
 }
 
+#child-save:disabled {
+    opacity: 0.4;
+}
+
 .skill {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 150px;

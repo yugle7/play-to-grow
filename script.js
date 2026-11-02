@@ -153,7 +153,6 @@ const STRINGS = {
         cancel: "Отмена",
         close: "Закрыть",
         delete: "Удалить",
-        edit: "Изменить",
         clear: "Очистить",
         yes: "Да",
         storageError: "Не удалось сохранить данные: в браузере закончилось место.",
@@ -228,14 +227,12 @@ const STRINGS = {
         addChild: "Добавить ребёнка",
         addAnotherChild: "Добавить ещё ребёнка",
         newChild: "Новый ребёнок",
-        editChild: "Профиль ребёнка",
         profileTitle: "Профиль",
         age: "Возраст",
         name: "Имя",
         birthDate: "Дата рождения",
         dueDate: "ПДР (необязательно)",
         gender: "Пол (необязательно)",
-        genderTitle: "Пол",
         genders: {unspecified: "Не указан", female: "Девочка", male: "Мальчик"},
         deleteChild: "Удалить профиль",
         deleteChildQuestion: (name) =>
@@ -431,7 +428,7 @@ let durationFilter = "0";
 let interestFilter = "";
 let draft = null;
 
-let editedChild = null;
+let childFormNew = false;
 let formGender = "unspecified";
 
 let openedSheet = null;
@@ -606,8 +603,7 @@ const deleteAllButton = $("delete-all");
 const childPageTitle = $("child-page-title");
 const childNone = $("child-none");
 const childProfile = $("child-profile");
-const childInfo = $("child-info");
-const childEdit = $("child-edit");
+const childDetails = $("child-details");
 const childDelete = $("child-delete");
 const skillsList = $("skills");
 const interestsList = $("interests");
@@ -644,8 +640,6 @@ const activitySheet = $("activity-sheet");
 const activityBody = $("activity-body");
 
 /* --- Child form --- */
-const childSheet = $("child-sheet");
-const childFormTitle = $("child-form-title");
 const childNameInput = $("child-name-input");
 const childBirthInput = $("child-birth-input");
 const childDueInput = $("child-due-input");
@@ -1243,6 +1237,7 @@ childSelect.onclick = () => {
         data.activeChildId,
         (value) => {
             updateData((d) => (d.activeChildId = value));
+            childFormNew = false;
             render();
         },
         true,
@@ -1640,18 +1635,23 @@ const renderConditions = (child) => {
 
 const renderChild = () => {
     const child = activeChild();
-    childPageTitle.textContent = child ? S.profileTitle : S.child;
-    childNone.classList.toggle("hidden", !!child);
-    childProfile.classList.toggle("hidden", !child);
-    if (!child) return;
-    childInfo.replaceChildren(
-        ...factRows([
-            [S.name, child.name],
-            [S.birthDate, formatDate(child.birthDate, {day: "numeric", month: "long", year: "numeric"})],
-            [S.age, formatAge(child.birthDate)],
-            child.gender !== "unspecified" && [S.genderTitle, S.genders[child.gender]],
-        ]),
-    );
+    const showForm = !!child || childFormNew;
+    childPageTitle.textContent = childFormNew ? S.newChild : child ? S.profileTitle : S.child;
+    childNone.classList.toggle("hidden", showForm);
+    childProfile.classList.toggle("hidden", !showForm);
+    if (!showForm) return;
+
+    const formChild = childFormNew ? null : child;
+    childNameInput.value = formChild?.name ?? "";
+    birthdate.set(formChild?.birthDate);
+    duedate.set(formChild?.dueDate);
+    formGender = formChild?.gender ?? "unspecified";
+    setSegment(childGender, formGender, "gender");
+    childCancel.classList.toggle("hidden", !childFormNew);
+    updateChildSave();
+
+    childDetails.classList.toggle("hidden", childFormNew);
+    if (!child || childFormNew) return;
     renderSkills(child);
     renderInterests(child);
     renderConditions(child);
@@ -1662,6 +1662,7 @@ childDelete.onclick = () => {
     showModal(
         S.deleteChildQuestion(child.name),
         () => {
+            childFormNew = false;
             deleteChild(child.id);
             render();
         },
@@ -1868,16 +1869,15 @@ const updateChildSave = () => {
         (!!childDueInput.value && !due);
 };
 
-const openChildForm = (child) => {
-    editedChild = child;
-    childFormTitle.textContent = child ? S.editChild : S.newChild;
-    childNameInput.value = child?.name ?? "";
-    birthdate.set(child?.birthDate);
-    duedate.set(child?.dueDate);
-    formGender = child?.gender ?? "unspecified";
-    setSegment(childGender, formGender, "gender");
-    updateChildSave();
-    openSheet(childSheet);
+const openChildForm = () => {
+    childFormNew = true;
+    closeSheet();
+    renderPage("child");
+};
+
+const cancelChildForm = () => {
+    childFormNew = false;
+    render();
 };
 
 const saveChild = () => {
@@ -1888,20 +1888,22 @@ const saveChild = () => {
         dueDate: duedate.get(),
         gender: formGender,
     };
-    if (editedChild) editChild(editedChild, fields);
-    else createChild(fields);
-    closeSheet();
+    if (childFormNew) {
+        createChild(fields);
+        childFormNew = false;
+    } else {
+        editChild(activeChild(), fields);
+    }
     render();
 };
 
 childSave.onclick = saveChild;
-childCancel.onclick = closeSheet;
+childCancel.onclick = cancelChildForm;
 childNameInput.oninput = updateChildSave;
 onSegment(childGender, "gender", (value) => (formGender = value));
-childEdit.onclick = () => openChildForm(activeChild());
 
 document.querySelectorAll(".add-child").forEach((button) => {
-    button.onclick = () => openChildForm(null);
+    button.onclick = () => openChildForm();
 });
 
 // ==========================================================================
@@ -2027,6 +2029,7 @@ const render = () => {
 };
 
 const renderPage = (name) => {
+    if (name !== "child") childFormNew = false;
     currentPage = name;
     Object.entries(pages).forEach(([key, section]) => {
         section.classList.toggle("hidden", key !== name);

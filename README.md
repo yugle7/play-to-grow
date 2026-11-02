@@ -157,7 +157,9 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 ### Bottom Sheets and Confirmation Dialog
 
-Bottom sheets (activity details, feedback, child profile) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
+The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children.
+
+Bottom sheets (activity details and feedback) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
 
 The `#modal` confirmation dialog is displayed with `showModal()`, while short messages are displayed with `showMessage()`.
 
@@ -453,7 +455,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"13"` → `"14"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"14"` → `"15"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
