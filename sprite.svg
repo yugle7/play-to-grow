@@ -93,6 +93,10 @@
         <path d="M2 12L10 20L22 2"/>
     </symbol>
 
+    <symbol id="prev" viewBox="0 0 24 24">
+        <polyline points="14 6 8 12 14 18"/>
+    </symbol>
+
     <symbol id="check" viewBox="0 0 24 24">
         <polyline points="5 12 10 17 19 7"/>
     </symbol>

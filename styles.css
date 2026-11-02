@@ -809,31 +809,31 @@ nav .active > svg {
     stroke: none;
 }
 
-#today-finish,
-#today-another {
-    position: fixed;
-    top: max(10px, env(safe-area-inset-top));
-    z-index: 5;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.scroll {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
-#today-another {
-    right: max(10px, env(safe-area-inset-right));
-    background: var(--bg);
+.cta-space {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
 
-#today-finish {
-    right: calc(max(10px, env(safe-area-inset-right)) + 62px);
+#today-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - env(safe-area-inset-top));
 }
 
-#today-finish svg {
-    stroke: var(--bg);
+.today-header {
+    padding-left: 58px;
+    padding-right: 58px;
 }
 
-#today-another svg {
-    stroke: var(--accent);
+#today-back {
+    right: auto;
+    left: 8px;
 }
 
 /* Activity content */

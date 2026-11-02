@@ -36,9 +36,17 @@
      СЕГОДНЯ
      ========================================================================== -->
 
-<section id="today-page" class="width-500 safe">
-    <div class="pad-20 col gap-20">
-        <p id="today-date" class="help small"></p>
+<section id="today-page" class="hidden">
+    <div id="today-scroll" class="scroll">
+        <div class="width-500 col gap-20 pad-20 cta-space">
+            <div class="row gap-10 today-header">
+                <button id="today-back" class="fab-close" type="button" data-i18n-aria-label="back">
+                    <svg class="tool">
+                        <use href="sprite.svg#prev"></use>
+                    </svg>
+                </button>
+                <p id="today-date" class="help small"></p>
+            </div>
 
         <div id="welcome" class="col gap-20 hidden">
             <h3 class="big" data-i18n="welcomeTitle"></h3>
@@ -59,18 +67,19 @@
         <div id="today-activity" class="col gap-20 hidden">
             <article id="today-body" class="activity"></article>
             <p id="today-status" class="small accent"></p>
-            <button id="today-finish" class="tap selected" type="button"
+            <button id="today-finish" class="fab-round" type="button"
                     data-i18n-aria-label="finish">
                 <svg class="tool">
                     <use href="sprite.svg#ok"></use>
                 </svg>
             </button>
-            <button id="today-another" class="tap" type="button"
+            <button id="today-another" class="fab-close" type="button"
                     data-i18n-aria-label="another">
                 <svg class="tool">
                     <use href="sprite.svg#refresh"></use>
                 </svg>
             </button>
+            </div>
         </div>
     </div>
 </section>
@@ -279,14 +288,14 @@
 
 <nav id="nav-bar" data-i18n-aria-label="navigation">
     <div id="nav">
-        <button data-page="today" class="active" data-i18n-aria-label="today" aria-current="page">
-            <svg>
-                <use href="sprite.svg#today"></use>
-            </svg>
-        </button>
-        <button data-page="activities" data-i18n-aria-label="activities">
+        <button id="active" data-page="activities" class="active" data-i18n-aria-label="activities" aria-current="page">
             <svg>
                 <use href="sprite.svg#activities"></use>
+            </svg>
+        </button>
+        <button id="today" data-i18n-aria-label="today">
+            <svg>
+                <use href="sprite.svg#today"></use>
             </svg>
         </button>
         <button data-page="history" data-i18n-aria-label="history">

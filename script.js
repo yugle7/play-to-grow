@@ -150,6 +150,7 @@ const STRINGS = {
 
         /* --- Common --- */
         save: "Сохранить",
+        back: "Назад",
         cancel: "Отмена",
         close: "Закрыть",
         delete: "Удалить",
@@ -417,8 +418,9 @@ let data;
 let catalogue = [];
 let catalogueError = false;
 let todayRec = null;
+let todayReturnPage = "activities";
 
-let currentPage = "today";
+let currentPage = "activities";
 let historyFilter = "all";
 let historyAreaFilter = "";
 let activityArea = "";
@@ -566,6 +568,7 @@ const pages = {
 };
 
 const nav = $("nav");
+const navBar = $("nav-bar");
 const navButtons = [...nav.querySelectorAll("button")];
 
 const header = $("top");
@@ -575,6 +578,8 @@ const childAge = $("child-age");
 
 /* --- Today --- */
 const todayDate = $("today-date");
+const todayBack = $("today-back");
+const todayScroll = $("today-scroll");
 const welcome = $("welcome");
 const todayEmpty = $("today-empty");
 const todayEmptyText = $("today-empty-text");
@@ -1245,6 +1250,10 @@ const resetInferredPreferences = (childId) =>
 // ==========================================================================
 
 const renderHeader = () => {
+    if (currentPage === "today") {
+        header.classList.add("hidden");
+        return;
+    }
     const child = activeChild();
     header.classList.remove("hidden");
     headerAddChild.classList.toggle("hidden", !!child);
@@ -1318,8 +1327,10 @@ todayFinish.onclick = () => openFeedback();
 todayAnother.onclick = () => {
     if (!replaceRecommendation(activeChild(), todayRec)) showMessage(S.noAlternative);
     renderToday();
-    window.scrollTo(0, 0);
+    todayScroll.scrollTop = 0;
 };
+
+todayBack.onclick = () => renderPage(todayReturnPage);
 
 openCatalogue.onclick = () => renderPage("activities");
 changeConditions.onclick = () => renderPage("child");
@@ -2037,7 +2048,7 @@ importInput.onchange = async () => {
         S.importQuestion,
         () => {
             importData(imported);
-            renderPage("today");
+            openTodayPage();
         },
         S.importConfirm,
     );
@@ -2053,7 +2064,7 @@ deleteAllButton.onclick = () =>
         S.deleteAllQuestion,
         () => {
             deleteAllData();
-            renderPage("today");
+            openTodayPage();
         },
         S.delete,
     );
@@ -2081,6 +2092,7 @@ const renderPage = (name) => {
     Object.entries(pages).forEach(([key, section]) => {
         section.classList.toggle("hidden", key !== name);
     });
+    navBar.classList.toggle("hidden", name === "today");
     navButtons.forEach((button) => {
         const active = button.dataset.page === name;
         button.classList.toggle("active", active);
@@ -2091,9 +2103,17 @@ const renderPage = (name) => {
     render();
 };
 
+const openTodayPage = () => {
+    if (currentPage !== "today") todayReturnPage = currentPage;
+    renderPage("today");
+    todayScroll.scrollTop = 0;
+};
+
 nav.onclick = (event) => {
     const button = event.target.closest("button");
-    if (button) renderPage(button.dataset.page);
+    if (!button) return;
+    if (button.id === "today") return openTodayPage();
+    if (button.dataset.page) renderPage(button.dataset.page);
 };
 
 // ==========================================================================
@@ -2109,7 +2129,7 @@ document.querySelectorAll("input:not([type=file])").forEach((input) => {
     translatePage();
     loadData();
     await loadCatalogue();
-    renderPage("today");
+    renderPage("activities");
     navigator.serviceWorker?.register("sw.js", {updateViaCache: "none"});
 
     // the date changes while the app stays open: refresh age and the daily screen
