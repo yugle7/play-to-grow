@@ -92,6 +92,7 @@ play-to-grow/
 ├── script.js             all application logic
 ├── sw.js                 service worker: offline mode and caching
 ├── manifest.json         PWA configuration: name, icons, colours
+├── privacy.html          standalone privacy policy page
 ├── data/
 │   └── activities.json   activity catalogue
 ├── sprite.svg            all UI icons in one file
@@ -455,7 +456,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"14"` → `"15"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"15"` → `"16"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 

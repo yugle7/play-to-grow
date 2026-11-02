@@ -1,14 +1,3 @@
-## Add support, mailTo, and privacy links to settings-page
-
-Update `#settings-page` by adding the following links:
-- Support
-- Email (`mailto`)
-- Privacy Policy
-
-Use the same URLs, email address, labels, icons, and visual styling as in the existing project @boilerplate.
-
-Reuse the boilerplate implementation rather than creating a new link style or inventing new URLs. Make sure the links work correctly when tapped on mobile devices.
-
 ## Update the activity-sheet header and close button
 
 Change the layout of `#activity-sheet`:

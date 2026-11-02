@@ -878,6 +878,7 @@ nav .active > svg {
    9. SETTINGS
    ========================================================================== */
 
+#settings-page > a,
 #settings-page > button {
     display: flex;
     align-items: center;
@@ -894,6 +895,7 @@ nav .active > svg {
     color: var(--text);
 }
 
+#settings-page > a:active,
 #settings-page > button:active {
     opacity: 0.5;
 }

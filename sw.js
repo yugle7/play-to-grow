@@ -1,10 +1,11 @@
 const APP_PREFIX = "play-to-grow";
-const CACHE_VERSION = "15";
+const CACHE_VERSION = "16";
 const CACHE = `${APP_PREFIX}-${CACHE_VERSION}`;
 
 const APP_SHELL = [
     "./",
     "index.html",
+    "privacy.html",
     "styles.css",
     "script.js",
     "manifest.json",
