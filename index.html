@@ -21,7 +21,10 @@
 
 <header id="top" class="width-500 hidden">
     <div class="row gap-10 pad-20">
-        <select id="child-select" data-i18n-aria-label="selectChild"></select>
+        <button id="child-select" class="select" type="button" aria-haspopup="dialog"
+                data-i18n-aria-label="selectChild">
+            <span class="select-value"></span>
+        </button>
         <span id="child-age" class="help small"></span>
     </div>
 </header>
@@ -89,16 +92,22 @@
         <div class="row gap-10 filters">
             <label class="field">
                 <span class="label" data-i18n="filterAge"></span>
-                <select id="filter-age" class="input"></select>
+                <button id="filter-age" class="input select" type="button" aria-haspopup="dialog">
+                    <span class="select-value"></span>
+                </button>
             </label>
             <label class="field">
                 <span class="label" data-i18n="filterDuration"></span>
-                <select id="filter-duration" class="input"></select>
+                <button id="filter-duration" class="input select" type="button" aria-haspopup="dialog">
+                    <span class="select-value"></span>
+                </button>
             </label>
         </div>
         <label class="field">
             <span class="label" data-i18n="filterInterest"></span>
-            <select id="filter-interest" class="input"></select>
+            <button id="filter-interest" class="input select" type="button" aria-haspopup="dialog">
+                <span class="select-value"></span>
+            </button>
         </label>
         <p id="catalogue-status" class="help small"></p>
     </div>
@@ -332,14 +341,12 @@
             <span class="label" data-i18n="name"></span>
             <input id="child-name-input" class="input" maxlength="40" autocomplete="off">
         </label>
-        <div class="field">
+        <div class="date-fields">
             <label class="label" for="child-birth-input" data-i18n="birthDate"></label>
+            <label class="label" for="child-due-input" data-i18n="dueDate"></label>
             <input id="child-birth-input" class="input mono" type="text" inputmode="numeric"
                    placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
                    spellcheck="false">
-        </div>
-        <div class="field">
-            <label class="label" for="child-due-input" data-i18n="dueDate"></label>
             <input id="child-due-input" class="input mono" type="text" inputmode="numeric"
                    placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
                    spellcheck="false">
@@ -358,6 +365,18 @@
         <button id="child-cancel" class="right" data-i18n="cancel"></button>
         <button id="child-save" class="accent" data-i18n="save" disabled></button>
     </footer>
+</div>
+
+<div id="options-sheet" class="sheet center" role="dialog" aria-modal="true" aria-labelledby="options-title">
+    <div class="row between">
+        <h3 id="options-title"></h3>
+        <button type="button" class="icon-button close" data-i18n-aria-label="close">
+            <svg class="tool">
+                <use href="sprite.svg#close"></use>
+            </svg>
+        </button>
+    </div>
+    <div id="options-list" class="options sheet-scroll"></div>
 </div>
 
 <div id="modal" hidden>

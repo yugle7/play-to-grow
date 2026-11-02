@@ -233,7 +233,7 @@ const STRINGS = {
         age: "Возраст",
         name: "Имя",
         birthDate: "Дата рождения",
-        dueDate: "Предполагаемая дата родов (необязательно)",
+        dueDate: "ПДР (необязательно)",
         gender: "Пол (необязательно)",
         genderTitle: "Пол",
         genders: {unspecified: "Не указан", female: "Девочка", male: "Мальчик"},
@@ -269,7 +269,7 @@ const STRINGS = {
         /* --- Catalogue --- */
         searchPlaceholder: "Поиск по названию",
         allAreas: "Все области",
-        anyAge: "Любой возраст",
+        anyAge: "Любой",
         childAgeFilter: "По возрасту ребёнка",
         anyDuration: "Любое время",
         allInterests: "Все интересы",
@@ -285,11 +285,11 @@ const STRINGS = {
                 ? "Все занятия в каталоге проверены на безопасность."
                 : `Проверено на безопасность: ${reviewed} из ${total}. ` +
                   "Непроверенные занятия видны в каталоге, но не попадают в рекомендации.",
-        ageRange: (min, max) => `${min}–${max} мес.`,
+        ageRange: (min, max) => `${min}–${max} мес`,
         notReviewed: "Не проверено",
         disabled: "Отключено",
         notReviewedNote:
-            "Это демонстрационное занятие ещё не проверено на безопасность, поэтому приложение его не рекомендует.",
+            "Это занятие ещё не проверено на безопасность, поэтому приложение его не рекомендует.",
         disabledNote: "Это занятие отключено и не попадает в рекомендации.",
         goal: "Цель",
         duration: "Время",
@@ -427,6 +427,9 @@ let currentPage = "today";
 let historyFilter = "all";
 let historyAreaFilter = "";
 let activityArea = "";
+let ageFilter = "";
+let durationFilter = "0";
+let interestFilter = "";
 let draft = null;
 
 let editedChild = null;
@@ -652,6 +655,9 @@ const childCancel = $("child-cancel");
 
 /* --- Overlay and modal --- */
 const overlay = $("overlay");
+const optionsSheet = $("options-sheet");
+const optionsTitle = $("options-title");
+const optionsList = $("options-list");
 const modal = $("modal");
 const question = $("question");
 const modalYes = $("modal-yes");
@@ -789,6 +795,10 @@ const renderAreaChoices = (container, value, onSelect) =>
         onSelect,
     );
 
+const setSelectValue = (button, text) => {
+    button.querySelector(".select-value").textContent = text;
+};
+
 /* --- Segments --- */
 
 const setSegment = (segment, value, attr) => {
@@ -831,6 +841,33 @@ const closeSheet = () => {
 };
 
 overlay.onclick = closeSheet;
+
+const openOptions = (title, options, selected, onSelect) => {
+    optionsTitle.textContent = title;
+    optionsList.replaceChildren(
+        ...options.map(({value, label, disabled = false}) => {
+            const current = value === selected;
+            const option = el(
+                "button",
+                {
+                    type: "button",
+                    className: current ? "option selected" : "option",
+                    disabled,
+                    onclick: () => {
+                        closeSheet();
+                        if (!current) onSelect(value);
+                    },
+                },
+                el("span", {textContent: label}),
+                current && icon("check", "option-check"),
+            );
+            option.setAttribute("aria-pressed", String(current));
+            return option;
+        }),
+    );
+    optionsList.scrollTop = 0;
+    openSheet(optionsSheet);
+};
 
 const showModal = (text, onYes = null, yesLabel = null) => {
     question.textContent = text;
@@ -1193,15 +1230,20 @@ const renderHeader = () => {
     const child = activeChild();
     header.classList.toggle("hidden", !child);
     if (!child) return;
-    childSelect.replaceChildren(
-        ...data.children.map((c) => el("option", {value: c.id, textContent: c.name, selected: c === child})),
-    );
+    setSelectValue(childSelect, child.name);
     childAge.textContent = formatAge(child.birthDate);
 };
 
-childSelect.onchange = () => {
-    updateData((d) => (d.activeChildId = childSelect.value));
-    render();
+childSelect.onclick = () => {
+    openOptions(
+        S.selectChild,
+        data.children.map((c) => ({value: c.id, label: c.name})),
+        data.activeChildId,
+        (value) => {
+            updateData((d) => (d.activeChildId = value));
+            render();
+        },
+    );
 };
 
 // ==========================================================================
@@ -1384,20 +1426,28 @@ const openActivity = (activity) => {
 // 16. ACTIVITIES
 // ==========================================================================
 
-const option = (value, textContent) => el("option", {value, textContent});
+const ageOptions = () => [
+    {value: "", label: S.anyAge},
+    {value: "child", label: S.childAgeFilter, disabled: !activeChild()},
+    ...AGE_RANGES.map(([min, max]) => ({value: `${min}-${max}`, label: S.ageRange(min, max)})),
+];
 
-const fillFilters = () => {
-    filterAge.append(
-        option("", S.anyAge),
-        option("child", S.childAgeFilter),
-        ...AGE_RANGES.map(([min, max]) => option(`${min}-${max}`, S.ageRange(min, max))),
-    );
-    filterDuration.append(...DURATION_LIMITS.map((d) => option(d, d ? S.durationLimits[d] : S.anyDuration)));
-    filterInterest.append(option("", S.allInterests), ...INTERESTS.map((tag) => option(tag, S.interests[tag])));
-};
+const durationOptions = () =>
+    DURATION_LIMITS.map((value) => ({
+        value: String(value),
+        label: value ? S.durationLimits[value] : S.anyDuration,
+    }));
+
+const interestOptions = () => [
+    {value: "", label: S.allInterests},
+    ...INTERESTS.map((tag) => ({value: tag, label: S.interests[tag]})),
+];
+
+const selectedLabel = (options, value) =>
+    options.find((option) => option.value === value)?.label ?? options[0].label;
 
 const ageFilterRange = (child) => {
-    if (filterAge.value !== "child") return filterAge.value && filterAge.value.split("-").map(Number);
+    if (ageFilter !== "child") return ageFilter && ageFilter.split("-").map(Number);
     const {months} = ageOf(child.birthDate);
     return [months, months];
 };
@@ -1422,8 +1472,11 @@ const activityItem = (a) =>
 
 const renderActivities = () => {
     const child = activeChild();
-    filterAge.options[1].disabled = !child;
-    if (!child && filterAge.value === "child") filterAge.value = "";
+    if (!child && ageFilter === "child") ageFilter = "";
+
+    setSelectValue(filterAge, selectedLabel(ageOptions(), ageFilter));
+    setSelectValue(filterDuration, selectedLabel(durationOptions(), durationFilter));
+    setSelectValue(filterInterest, selectedLabel(interestOptions(), interestFilter));
 
     renderAreaChoices(filterAreaChips, activityArea, (area) => {
         activityArea = area;
@@ -1432,14 +1485,14 @@ const renderActivities = () => {
 
     const query = normalize(searchInput.value.trim());
     const range = ageFilterRange(child);
-    const duration = Number(filterDuration.value);
+    const duration = Number(durationFilter);
     const list = catalogue.filter(
         (a) =>
             normalize(a.title).includes(query) &&
             (!activityArea || a.areas.includes(activityArea)) &&
             (!range || (a.ageMinMonths <= range[1] && a.ageMaxMonths >= range[0])) &&
             (!duration || a.duration <= duration) &&
-            (!filterInterest.value || a.interestTags.includes(filterInterest.value)),
+            (!interestFilter || a.interestTags.includes(interestFilter)),
     );
     activityList.replaceChildren(...list.map(activityItem));
     activityEmpty.classList.toggle("hidden", list.length > 0 || catalogueError);
@@ -1463,9 +1516,26 @@ searchClear.onclick = () => {
     searchInput.focus();
 };
 
-[filterAge, filterDuration, filterInterest].forEach((input) => {
-    input.oninput = renderActivities;
-});
+filterAge.onclick = () => {
+    openOptions(S.filterAge, ageOptions(), ageFilter, (value) => {
+        ageFilter = value;
+        renderActivities();
+    });
+};
+
+filterDuration.onclick = () => {
+    openOptions(S.filterDuration, durationOptions(), durationFilter, (value) => {
+        durationFilter = value;
+        renderActivities();
+    });
+};
+
+filterInterest.onclick = () => {
+    openOptions(S.filterInterest, interestOptions(), interestFilter, (value) => {
+        interestFilter = value;
+        renderActivities();
+    });
+};
 
 // ==========================================================================
 // 17. CHILD
@@ -1491,30 +1561,33 @@ const renderSkills = (child) =>
                     el("span", {textContent: S.areas[area]}),
                     count,
                 ),
-                ...SKILLS[area].map((id) =>
-                    el(
+                ...SKILLS[area].map((id) => {
+                    const level = skillLevel(child, id);
+                    const select = el(
+                        "button",
+                        {type: "button", className: "input select"},
+                        el("span", {className: "select-value", textContent: S.levels[level]}),
+                    );
+                    select.setAttribute("aria-haspopup", "dialog");
+                    select.onclick = () => {
+                        openOptions(
+                            S.skills[id],
+                            SKILL_LEVELS.map((value) => ({value, label: S.levels[value]})),
+                            skillLevel(child, id),
+                            (value) => {
+                                setSkillLevel(child, id, value);
+                                setSelectValue(select, S.levels[value]);
+                                updateCount();
+                            },
+                        );
+                    };
+                    return el(
                         "label",
                         {className: "skill"},
                         el("span", {textContent: S.skills[id]}),
-                        el(
-                            "select",
-                            {
-                                className: "input",
-                                onchange: (e) => {
-                                    setSkillLevel(child, id, e.target.value);
-                                    updateCount();
-                                },
-                            },
-                            ...SKILL_LEVELS.map((level) =>
-                                el("option", {
-                                    value: level,
-                                    textContent: S.levels[level],
-                                    selected: skillLevel(child, id) === level,
-                                }),
-                            ),
-                        ),
-                    ),
-                ),
+                        select,
+                    );
+                }),
             );
         }),
     );
@@ -1974,7 +2047,6 @@ document.querySelectorAll("input:not([type=file])").forEach((input) => {
 
 (async () => {
     translatePage();
-    fillFilters();
     loadData();
     await loadCatalogue();
     renderPage("today");

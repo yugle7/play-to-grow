@@ -132,7 +132,6 @@ input {
 }
 
 input,
-select,
 textarea {
     width: fit-content;
     outline: none;
@@ -452,8 +451,32 @@ button svg.tool,
     cursor: default;
 }
 
-select.input {
+.select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.select-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: inherit;
+}
+
+.select::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--help);
+    border-bottom: 2px solid var(--help);
+    transform: rotate(45deg) translateY(-2px);
+    flex: none;
 }
 
 .text-field {
@@ -655,16 +678,10 @@ nav .active > svg {
 #child-select {
     min-width: 0;
     max-width: 70%;
-    padding: 0 26px 0 0;
+    padding: 0;
     border: 0;
-    appearance: none;
-    background-color: transparent;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8b8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 4px center;
-    background-size: 16px;
+    background: transparent;
     font-size: 20px;
-    text-overflow: ellipsis;
 }
 
 #child-age {
@@ -833,6 +850,12 @@ nav .active > svg {
    8. CHILD PROFILE
    ========================================================================== */
 
+.date-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+}
+
 .skill {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 150px;
@@ -928,6 +951,20 @@ nav .active > svg {
     visibility: visible;
 }
 
+.sheet.center {
+    top: 50%;
+    bottom: auto;
+    width: calc(100% - 32px);
+    padding: 20px 16px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    transform: translate(-50%, -50%);
+}
+
+.sheet.center.open {
+    transform: translate(-50%, -50%);
+}
+
 .sheet.full {
     height: 100dvh;
     max-height: 100dvh;
@@ -961,6 +998,50 @@ nav .active > svg {
 
 .sheet footer button:disabled {
     opacity: 0.4;
+}
+
+/* Option picker */
+.options {
+    display: flex;
+    flex-direction: column;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.option:last-child {
+    border-bottom: 0;
+}
+
+.option span {
+    font-size: inherit;
+}
+
+.option.selected {
+    color: var(--accent);
+}
+
+.option:disabled {
+    color: var(--help);
+    opacity: 0.45;
+    cursor: default;
+}
+
+.option-check {
+    width: 20px;
+    height: 20px;
+    stroke: var(--accent);
 }
 
 /* ==========================================================================
