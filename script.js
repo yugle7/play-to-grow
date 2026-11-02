@@ -640,7 +640,7 @@ const activityEmpty = $("activity-empty");
 
 /* --- Activity details --- */
 const activitySheet = $("activity-sheet");
-const activityBody = $("activity-body");
+const activityClose = activitySheet.querySelector(".close");
 
 /* --- Child form --- */
 const childNameInput = $("child-name-input");
@@ -1418,8 +1418,8 @@ const activityContent = (a, full) =>
     ].filter(Boolean);
 
 const openActivity = (activity) => {
-    activityBody.replaceChildren(...activityContent(activity, true));
-    activityBody.scrollTop = 0;
+    activitySheet.replaceChildren(activityClose, ...activityContent(activity, true));
+    activitySheet.scrollTop = 0;
     openSheet(activitySheet);
 };
 

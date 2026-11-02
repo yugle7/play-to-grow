@@ -253,10 +253,6 @@ h3 {
     gap: 30px;
 }
 
-.pad-10 {
-    padding: 10px;
-}
-
 .pad-20 {
     padding: 20px;
 }
@@ -979,6 +975,20 @@ nav .active > svg {
     border-top: 0;
     border-radius: 0;
 }
+
+#activity-sheet {
+    gap: 18px;
+    padding: max(20px, env(safe-area-inset-top)) 20px
+        max(30px, calc(env(safe-area-inset-bottom) + 20px));
+    overflow-y: auto;
+}
+
+#activity-sheet > .close {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    z-index: 2;
+
 
 .sheet-scroll {
     flex: 1;
