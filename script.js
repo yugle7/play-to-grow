@@ -270,7 +270,6 @@ const STRINGS = {
         searchPlaceholder: "Поиск по названию",
         allAreas: "Все области",
         anyAge: "Любой",
-        childAgeFilter: "По возрасту ребёнка",
         anyDuration: "Любое время",
         allInterests: "Все интересы",
         filterArea: "Область развития",
@@ -572,6 +571,7 @@ const nav = $("nav");
 const navButtons = [...nav.querySelectorAll("button")];
 
 const header = $("top");
+const headerAddChild = $("header-add-child");
 const childSelect = $("child-select");
 const childAge = $("child-age");
 
@@ -590,7 +590,7 @@ const openCatalogue = $("open-catalogue");
 const changeConditions = $("change-conditions");
 
 /* --- History --- */
-const historyFilterSegment = $("history-filter");
+const historyFilterChips = $("history-filter");
 const historyAreaChips = $("history-area");
 const historyList = $("history-list");
 const historyEmpty = $("history-empty");
@@ -658,6 +658,7 @@ const overlay = $("overlay");
 const optionsSheet = $("options-sheet");
 const optionsTitle = $("options-title");
 const optionsList = $("options-list");
+const optionsAddChild = $("options-add-child");
 const modal = $("modal");
 const question = $("question");
 const modalYes = $("modal-yes");
@@ -683,9 +684,6 @@ const translatePage = () => {
         .querySelectorAll("[data-i18n-placeholder]")
         .forEach((node) => (node.placeholder = S[node.dataset.i18nPlaceholder]));
 
-    historyFilterSegment
-        .querySelectorAll("button")
-        .forEach((button) => (button.textContent = S.historyFilters[button.dataset.filter]));
     childGender
         .querySelectorAll("button")
         .forEach((button) => (button.textContent = S.genders[button.dataset.gender]));
@@ -842,7 +840,8 @@ const closeSheet = () => {
 
 overlay.onclick = closeSheet;
 
-const openOptions = (title, options, selected, onSelect) => {
+const openOptions = (title, options, selected, onSelect, showAddChild = false) => {
+    optionsAddChild.classList.toggle("hidden", !showAddChild);
     optionsTitle.textContent = title;
     optionsList.replaceChildren(
         ...options.map(({value, label, disabled = false}) => {
@@ -1228,7 +1227,10 @@ const resetInferredPreferences = (childId) =>
 
 const renderHeader = () => {
     const child = activeChild();
-    header.classList.toggle("hidden", !child);
+    header.classList.remove("hidden");
+    headerAddChild.classList.toggle("hidden", !!child);
+    childSelect.classList.toggle("hidden", !child);
+    childAge.classList.toggle("hidden", !child);
     if (!child) return;
     setSelectValue(childSelect, child.name);
     childAge.textContent = formatAge(child.birthDate);
@@ -1243,6 +1245,7 @@ childSelect.onclick = () => {
             updateData((d) => (d.activeChildId = value));
             render();
         },
+        true,
     );
 };
 
@@ -1426,11 +1429,14 @@ const openActivity = (activity) => {
 // 16. ACTIVITIES
 // ==========================================================================
 
-const ageOptions = () => [
-    {value: "", label: S.anyAge},
-    {value: "child", label: S.childAgeFilter, disabled: !activeChild()},
-    ...AGE_RANGES.map(([min, max]) => ({value: `${min}-${max}`, label: S.ageRange(min, max)})),
-];
+const ageOptions = () => {
+    const child = activeChild();
+    return [
+        {value: "", label: S.anyAge},
+        ...(child ? [{value: "child", label: formatAge(child.birthDate)}] : []),
+        ...AGE_RANGES.map(([min, max]) => ({value: `${min}-${max}`, label: S.ageRange(min, max)})),
+    ];
+};
 
 const durationOptions = () =>
     DURATION_LIMITS.map((value) => ({
@@ -1603,7 +1609,7 @@ const renderInterests = (child) =>
             const state = interestState(findPreference(child.id, "interest", tag));
             const button = el("button", {
                 type: "button",
-                className: `tap chip ${state === "like" ? "selected" : state === "dislike" ? "red" : ""}`,
+                className: `tap chip ${state === "like" ? "selected" : state === "dislike" ? "excluded" : ""}`,
                 textContent: S.interests[tag] + ({inferredLike: " ↑", inferredDislike: " ↓"}[state] ?? ""),
                 onclick: () => {
                     toggleInterest(child, tag);
@@ -1930,7 +1936,16 @@ const historyItem = (rec) => {
 
 const renderHistory = () => {
     const child = activeChild();
-    setSegment(historyFilterSegment, historyFilter, "filter");
+    renderChoices(
+        historyFilterChips,
+        Object.keys(HISTORY_FILTERS),
+        S.historyFilters,
+        (filter) => filter === historyFilter,
+        (filter) => {
+            historyFilter = filter;
+            renderHistory();
+        },
+    );
     renderAreaChoices(historyAreaChips, historyAreaFilter, (area) => {
         historyAreaFilter = area;
         renderHistory();
@@ -1946,11 +1961,6 @@ const renderHistory = () => {
     historyList.replaceChildren(...items.map(historyItem));
     historyEmpty.classList.toggle("hidden", items.length > 0);
 };
-
-onSegment(historyFilterSegment, "filter", (value) => {
-    historyFilter = value;
-    renderHistory();
-});
 
 // ==========================================================================
 // 19. SETTINGS

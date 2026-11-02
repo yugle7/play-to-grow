@@ -22,6 +22,9 @@
     --accent: var(--blue);
     --radius: 12px;
     --nav-height: calc(70px + env(safe-area-inset-bottom));
+
+    --warning-bg: color-mix(in srgb, var(--yellow) 14%, var(--bg));
+    --warning-heading: #85661a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,6 +46,9 @@
         --violet: #a184d6;
         --pink: #e0879d;
         --sky: #4fa9cc;
+
+        --warning-bg: color-mix(in srgb, var(--yellow) 18%, var(--bg));
+        --warning-heading: #dcc07a;
     }
 }
 
@@ -276,20 +282,6 @@ h3 {
     gap: 8px;
 }
 
-.scroll-x {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.scroll-x::-webkit-scrollbar {
-    display: none;
-}
-
-.scroll-x > * {
-    flex: 0 0 auto;
-}
-
 .empty {
     padding: 24px 20px;
     text-align: center;
@@ -361,6 +353,13 @@ button svg.tool,
 .tap.red {
     color: var(--red);
     border-color: var(--red);
+}
+
+.tap.excluded {
+    color: var(--help);
+    border-color: var(--line);
+    text-decoration: line-through;
+    opacity: 0.55;
 }
 
 .chip {
@@ -792,14 +791,18 @@ nav .active > svg {
     padding-left: 20px;
 }
 
+.safety,
+.warning {
+    background: var(--warning-bg);
+    border-radius: var(--radius);
+}
+
 .safety {
     padding: 14px 16px 16px;
-    border-radius: var(--radius);
-    background: var(--fade);
 }
 
 .safety h3 {
-    color: var(--red);
+    color: var(--warning-heading);
 }
 
 .links {
@@ -816,9 +819,7 @@ nav .active > svg {
 
 .warning {
     padding: 12px 16px;
-    border-radius: var(--radius);
-    background: var(--fade);
-    color: var(--red);
+    color: var(--text);
     font-size: 15px;
 }
 
@@ -826,7 +827,7 @@ nav .active > svg {
    7. CATALOGUE AND HISTORY
    ========================================================================== */
 
-#filter-area .tap {
+.tabs .tap {
     min-height: 38px;
     padding: 8px 4px;
     border: 0;
@@ -835,7 +836,7 @@ nav .active > svg {
     color: var(--help);
 }
 
-#filter-area .tap.selected {
+.tabs .tap.selected {
     background: transparent;
     color: var(--accent);
     border-bottom-color: var(--accent);

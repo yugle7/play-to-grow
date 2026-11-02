@@ -1,209 +1,215 @@
-# Занятия с ребёнком
+# Activities with Your Baby
 
-Мобильное веб-приложение (PWA) для родителей малышей от 0 до 12 месяцев. Каждый день оно предлагает одно подходящее занятие: по возрасту, навыкам и интересам ребёнка. После занятия родитель коротко отмечает, как всё прошло, и следующие предложения учитывают этот отзыв.
+A mobile web application (PWA) for parents of babies aged 0–12 months. Every day, it suggests one suitable activity based on the child's age, skills, and interests. After the activity, the parent briefly records how it went, and future suggestions take this feedback into account.
 
-Приложение работает без интернета, ничего не отправляет на сервер и хранит данные только на устройстве.
+The app works offline, does not send any data to a server, and stores all information locally on the device.
 
-> **Важно.** Каталог занятий в `data/activities.json` сейчас демонстрационный: все 29 занятий помечены `"safetyReviewed": false`. Приложение рекомендует только проверенные занятия, поэтому экран «Сегодня» будет показывать «Сегодня подходящих занятий нет», пока занятия не проверит специалист. Подробнее в разделе [Проверка безопасности](#проверка-безопасности).
+> **Important.** The activity catalogue in `data/activities.json` is currently for demonstration purposes: all 29 activities have `"safetyReviewed": false`. The app only recommends reviewed activities, so the Today screen will display "No suitable activities for today" until a specialist has reviewed the activities. See Safety Review for details.
 
-## Содержание
+## Table of Contents
 
-- [Что умеет приложение](#что-умеет-приложение)
-- [Как запустить](#как-запустить)
-- [Структура проекта](#структура-проекта)
-- [Как устроен код](#как-устроен-код)
-- [Данные пользователя](#данные-пользователя)
-- [Каталог занятий](#каталог-занятий)
-- [Как подбирается занятие дня](#как-подбирается-занятие-дня)
-- [Как работают отзывы](#как-работают-отзывы)
-- [Офлайн и обновления](#офлайн-и-обновления)
-- [Переводы](#переводы)
-- [Оформление](#оформление)
-- [Частые задачи](#частые-задачи)
-- [Проверка перед выпуском](#проверка-перед-выпуском)
-- [Ограничения](#ограничения)
-- [Правила разработки](#правила-разработки)
+- Features
+- Getting Started
+- Project Structure
+- Code Architecture
+- User Data
+- Activity Catalogue
+- How the Daily Activity Is Selected
+- How Feedback Works
+- Offline Mode and Updates
+- Translations
+- Styling
+- Common Tasks
+- Pre-release Checklist
+- Limitations
+- Development Guidelines
 
-## Что умеет приложение
+## Features
 
-Приложение помогает родителю, а не оценивает ребёнка. Оно не ставит диагнозы, не оценивает задержки развития и не заменяет педиатра. Пропускать дни нормально, никаких «серий» и напоминаний нет.
+The app supports parents; it does not assess children. It does not diagnose medical conditions, evaluate developmental delays, or replace a paediatrician. Skipping days is perfectly fine: there are no streaks or reminders.
 
-Пять разделов в нижнем меню:
+The app has five sections in the bottom navigation:
 
-| Раздел | Что там |
-|---|---|
-| **Сегодня** | Занятие на сегодня: цель, время, материалы, шаги, безопасность, видео. Кнопки «Начать» / «Завершить» и «Другое занятие». |
-| **Занятия** | Весь каталог: поиск по названию, фильтры по области развития, возрасту, длительности и интересу. Нажатие открывает подробное описание. |
-| **История** | Что предлагалось раньше и чем закончилось. Фильтры: все, выполненные, пропущенные, по области развития. |
-| **Ребёнок** | Профиль: имя, дата рождения, предполагаемая дата родов (необязательно), возраст, пол (необязательно). Навыки, интересы, условия для занятий. Можно добавить несколько детей. |
-| **Настройки** | Экспорт и импорт данных в JSON, сброс выводов из отзывов, удаление всех данных. |
+| Section        | Description                                                                                                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Today**      | Today's activity: goal, duration, materials, steps, safety instructions, and videos. "Start" / "Complete" and "Another Activity" buttons.                                  |
+| **Activities** | The full catalogue, with search by title and filters by developmental area, age, duration, and interest. Tap an activity to open its full description.                     |
+| **History**    | Previously suggested activities and their outcomes. Filters: all, completed, skipped, and developmental area.                                                              |
+| **Child**      | Child profile: name, date of birth, estimated due date (optional), age, and gender (optional). Skills, interests, and activity conditions. Multiple children can be added. |
+| **Settings**   | Export and import data as JSON, reset feedback-based preferences, and delete all data.                                                                                     |
 
-Обычный сценарий:
+Typical user flow:
 
-1. Родитель создаёт профиль ребёнка (имя и дата рождения).
-2. При желании отмечает навыки, интересы и условия: сколько есть времени, где заниматься, что есть под рукой.
-3. На экране «Сегодня» видит одно занятие. Если оно не подходит, нажимает «Другое занятие».
-4. Нажимает «Начать», занимается с ребёнком, потом «Завершить».
-5. Отмечает результат: получилось или нет, понравилось ли, было ли сложно.
-6. Следующие занятия подбираются с учётом отзыва.
+1. The parent creates a child profile by entering the child's name and date of birth.
+2. Optionally, the parent adds the child's skills and interests, as well as activity preferences: available time, preferred location, and materials on hand.
+3. The Today screen displays one activity. If it is not suitable, the parent taps "Another Activity".
+4. The parent taps "Start", does the activity with the child, and then taps "Complete".
+5. The parent provides feedback: whether the activity was successful, whether the child enjoyed it, and whether it was too difficult.
+6. Future activities are selected based on this feedback.
 
-## Как запустить
+## Getting Started
 
-Нужен только современный браузер. Ничего устанавливать не нужно: нет `npm`, сборки и зависимостей.
+All you need is a modern browser. Nothing needs to be installed: there is no `npm`, build process, or dependencies.
 
-### Локально
+### Run Locally
 
-Приложение нужно открывать через локальный веб-сервер. Если открыть `index.html` двойным щелчком (адрес начнётся с `file://`), браузер не даст загрузить каталог и не запустит офлайн-режим.
+The app must be opened through a local web server. Opening `index.html` directly by double-clicking it (the address will start with `file://`) will prevent the browser from loading the catalogue and enabling offline mode.
 
-Самый простой способ, если установлен Python:
+The simplest option, if Python is installed:
 
-```sh
+```
 cd play-to-grow
 python3 -m http.server 8000
 ```
 
-Откройте в браузере <http://localhost:8000>.
+Open [http://localhost:8000](http://localhost:8000) in your browser.
 
-Подойдёт любой другой статический сервер, например расширение Live Server в VS Code.
+Any other static server will also work, such as the Live Server extension for VS Code.
 
-### На телефоне
+### Run on a Phone
 
-- **В той же Wi-Fi сети:** запустите сервер командой `python3 -m http.server 8000 --bind 0.0.0.0` и откройте на телефоне `http://<IP компьютера>:8000`. Приложение будет работать, но офлайн-режим и установка будут отключены: браузеры разрешают их только по `https://` или на `localhost`.
-- **Полноценно:** выложите папку на любой статический хостинг с HTTPS (GitHub Pages, Netlify, Cloudflare Pages и т. п.). Никакой настройки сервера не нужно, это просто файлы.
+- **On the same Wi-Fi network:** start the server with `python3 -m http.server 8000 --bind 0.0.0.0` and open `http://<computer-IP>:8000` on your phone. The app will work, but offline mode and installation will be unavailable: browsers only allow these features over `https://` or on `localhost`.
+- **Full functionality:** upload the folder to any static hosting service that supports HTTPS (GitHub Pages, Netlify, Cloudflare Pages, etc.). No server configuration is required; the app consists of static files.
 
-### Установка как приложения
+### Install as an App
 
-- **Android, Chrome:** меню ⋮ → «Установить приложение».
-- **iPhone, Safari:** «Поделиться» → «На экран Домой».
-- **Компьютер, Chrome или Edge:** значок установки в адресной строке.
+- **Android, Chrome:** menu ⋮ → "Install app".
+- **iPhone, Safari:** "Share" → "Add to Home Screen".
+- **Desktop, Chrome or Edge:** click the install icon in the address bar.
 
-### Как увидеть рекомендации во время разработки
+### Preview Recommendations During Development
 
-Пока в каталоге нет проверенных занятий, экран «Сегодня» пустой. Чтобы посмотреть, как работает подбор, на своём компьютере временно поставьте нескольким занятиям `"safetyReviewed": true`. **Не сохраняйте это в репозитории**: отметку ставят только после настоящей проверки.
+The Today screen remains empty until the catalogue contains reviewed activities. To see how the recommendation algorithm works, temporarily set `"safetyReviewed": true` for a few activities on your local machine.
 
-## Структура проекта
+**Do not commit this change to the repository**: an activity should only be marked as reviewed after an actual safety review.
+
+## Project Structure
 
 ```
 play-to-grow/
-├── index.html            разметка всех экранов, шторок и окна подтверждения
-├── styles.css            все стили, светлая и тёмная тема
-├── script.js             вся логика приложения
-├── sw.js                 service worker: офлайн-режим и кэш
-├── manifest.json         описание PWA: название, иконки, цвета
+├── index.html            markup for all screens, bottom sheets, and confirmation dialog
+├── styles.css            all styles, light and dark themes
+├── script.js             all application logic
+├── sw.js                 service worker: offline mode and caching
+├── manifest.json         PWA configuration: name, icons, colours
 ├── data/
-│   └── activities.json   каталог занятий
-├── sprite.svg            все иконки интерфейса в одном файле
-├── favicon.svg           значок вкладки
+│   └── activities.json   activity catalogue
+├── sprite.svg            all UI icons in one file
+├── favicon.svg           browser tab icon
 └── icons/
-    └── icon-*.png        иконки приложения 192 и 512 px, обычные и maskable
+    └── icon-*.png        192 and 512 px app icons, regular and maskable
 ```
 
-Фреймворков, библиотек и сборщиков нет: файлы в репозитории отдаются браузеру как есть.
+There are no frameworks, libraries, or build tools: the browser serves the repository files as they are.
 
-## Как устроен код
+## Code Architecture
 
-### Один скрипт, пронумерованные разделы
+### One Script with Numbered Sections
 
-Вся логика в `script.js`. Это обычный скрипт без `import`/`export`, разбитый на разделы с заголовками-комментариями. Чтобы найти нужное место, ищите номер раздела, например `// 11. RECOMMENDATIONS`.
+All application logic is in `script.js`. It is a regular script without `import` / `export`, divided into sections with comment headers. To find a specific part, search for its section number, for example `// 11. RECOMMENDATIONS`.
 
-| № | Раздел | Что внутри |
-|---|---|---|
-| 1 | CONSTANTS | Настройки и словари: области развития, навыки, интересы, материалы, веса подбора, шаги изменения предпочтений |
-| 2 | TRANSLATIONS | Все тексты интерфейса (`STRINGS.ru`) |
-| 3 | STATE | Текущий экран, каталог, черновик отзыва, выбранный ребёнок |
-| 4 | HELPERS | Даты, расчёт возраста, `el()`, `debounce`, форматирование |
-| 5 | DOM ELEMENTS | Ссылки на элементы страницы, найденные один раз при запуске |
-| 6 | LANGUAGE | Подстановка текстов в разметку |
-| 7 | STORAGE | `loadData`, `saveData`, `updateData`, `exportData`, `importData` |
-| 8 | UI COMPONENTS | Шторки, окно подтверждения, сегменты, чипы |
-| 9 | PROFILE | Дети, навыки, условия, ручные отметки интересов |
-| 10 | CATALOGUE | Загрузка `activities.json`, проверка полноты занятия |
-| 11 | RECOMMENDATIONS | Отбор, оценка и выбор занятия дня |
-| 12 | FEEDBACK | Сохранение отзыва и обновление предпочтений |
-| 13-19 | HEADER … SETTINGS | Отрисовка каждого экрана и обработчики кнопок |
-| 20 | NAVIGATION | Переключение разделов, функция `render()` |
-| 21 | INIT | Запуск приложения |
+| #     | Section           | Contents                                                                                                                                 |
+| ----- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | CONSTANTS         | Configuration and dictionaries: developmental areas, skills, interests, materials, recommendation weights, and feedback adjustment steps |
+| 2     | TRANSLATIONS      | All UI text (`STRINGS.ru`)                                                                                                               |
+| 3     | STATE             | Current screen, catalogue, feedback draft, selected child                                                                                |
+| 4     | HELPERS           | Dates, age calculation, `el()`, `debounce`, formatting                                                                                   |
+| 5     | DOM ELEMENTS      | References to page elements, looked up once at startup                                                                                   |
+| 6     | LANGUAGE          | Inserting translated text into the markup                                                                                                |
+| 7     | STORAGE           | `loadData`, `saveData`, `updateData`, `exportData`, `importData`                                                                         |
+| 8     | UI COMPONENTS     | Bottom sheets, confirmation dialog, segments, chips                                                                                      |
+| 9     | PROFILE           | Children, skills, conditions, manually selected interests                                                                                |
+| 10    | CATALOGUE         | Loading `activities.json`, validating activity completeness                                                                              |
+| 11    | RECOMMENDATIONS   | Filtering, scoring, and selecting the daily activity                                                                                     |
+| 12    | FEEDBACK          | Saving feedback and updating preferences                                                                                                 |
+| 13–19 | HEADER … SETTINGS | Rendering each screen and handling button events                                                                                         |
+| 20    | NAVIGATION        | Switching sections, `render()` function                                                                                                  |
+| 21    | INIT              | Application startup                                                                                                                      |
 
-### Что происходит при запуске
+### What Happens at Startup
 
 ```
-translatePage()       тексты из STRINGS подставляются в элементы с data-i18n
-loadData()            данные пользователя читаются из localStorage
-await loadCatalogue() загружается data/activities.json
-renderPage("today")   показывается экран «Сегодня»
-register("sw.js")     регистрируется service worker для офлайн-режима
+translatePage()       inserts text from STRINGS into elements with data-i18n
+loadData()            loads user data from localStorage
+await loadCatalogue() loads data/activities.json
+renderPage("today")   displays the Today screen
+register("sw.js")     registers the service worker for offline mode
 ```
 
-### Как обновляется экран
+### How the UI Is Updated
 
-Здесь нет фреймворка с «реактивностью». Правило простое:
+There is no reactive framework. The rule is simple:
 
-1. Изменение данных идёт через `updateData(change)`: функция меняет объект `data` и сразу сохраняет его в `localStorage`.
-2. Потом вызывается отрисовка: `render()` для всего текущего экрана или функция одного блока, например `renderInterests(child)`.
+1. All data changes go through `updateData(change)`: the function modifies the `data` object and immediately saves it to `localStorage`.
+2. The UI is then re-rendered: `render()` for the entire current screen, or a function for a specific section, such as `renderInterests(child)`.
 
-`render()` перерисовывает шапку с выбором ребёнка и текущий раздел. Функцию отрисовки каждого раздела можно найти в объекте `renderers`.
+`render()` re-renders the header with the child selector and the current section. The rendering function for each section can be found in the `renderers` object.
 
-### Безопасная вставка текста
+### Safe Text Insertion
 
-Элементы создаются функцией `el(tag, props, ...children)`. Строки всегда попадают в страницу как текст, а не как HTML, поэтому текст из каталога или имя ребёнка не может «сломать» страницу или выполнить чужой код. Не используйте `innerHTML` для данных.
+Elements are created using the `el(tag, props, ...children)` function. Strings are always inserted into the page as text, not HTML. This means text from the catalogue or a child's name cannot break the page or execute arbitrary code. Do not use `innerHTML` for data.
 
-```js
+```
 el("li", {}, el("span", {className: "entry-title", textContent: activity.title}));
 ```
 
-Пустые значения (`false`, `null`) пропускаются, поэтому можно писать `условие && элемент`.
+Empty values (`false`, `null`) are skipped, so you can use expressions such as `condition && element`.
 
-### Шторки и окно подтверждения
+### Bottom Sheets and Confirmation Dialog
 
-Шторки (описание занятия, отзыв, профиль ребёнка) - это блоки `.sheet` с подложкой `#overlay`. Открывает и закрывает их пара `openSheet()` / `closeSheet()`; Esc и нажатие на подложку тоже закрывают шторку. Окно подтверждения `#modal` показывает `showModal()`, а короткое сообщение - `showMessage()`. Разметка шторок лежит в `index.html`, стили - в разделе `10. BOTTOM SHEETS`.
+Bottom sheets (activity details, feedback, child profile) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
 
-### Отладка в консоли браузера
+The `#modal` confirmation dialog is displayed with `showModal()`, while short messages are displayed with `showMessage()`.
 
-Все функции и переменные из `script.js` доступны в консоли DevTools:
+The sheet markup is in `index.html`, and the styles are in section `10. BOTTOM SHEETS`.
 
-```js
-data                                    // все данные пользователя
-catalogue                               // загруженный каталог
-activeChild()                           // выбранный ребёнок
-rankActivities(activeChild(), dateKey()) // все подходящие занятия с баллами, лучшие сверху
+### Debugging in the Browser Console
+
+All functions and variables from `script.js` are available in the DevTools console:
+
+```
+data                                    // all user data
+catalogue                               // loaded catalogue
+activeChild()                           // currently selected child
+rankActivities(activeChild(), dateKey()) // all suitable activities with scores, highest first
 ```
 
-## Данные пользователя
+## User Data
 
-### Где хранятся
+### Where Data Is Stored
 
-Всё лежит в `localStorage` браузера под одним ключом `childActivityPlanner`, в виде одного JSON-объекта. Посмотреть его можно в DevTools: Application → Local Storage.
+Everything is stored in the browser's `localStorage` under a single key, `childActivityPlanner`, as one JSON object. You can inspect it in DevTools: Application → Local Storage.
 
-Данные не синхронизируются между устройствами и браузерами. Чтобы перенести их, используйте «Экспорт данных» и «Импорт данных» в настройках.
+Data is not synchronised between devices or browsers. To transfer it, use "Export Data" and "Import Data" in Settings.
 
-### Структура
+### Data Structure
 
-```js
+```
 {
-    version: 1,             // версия формата данных
-    children: [],           // профили детей
-    activeChildId: "...",   // кто выбран сейчас
-    recommendations: [],    // все предложенные занятия
-    feedback: [],           // отзывы
-    preferences: [],        // интересы и выводы из отзывов
-    settings: {}            // зарезервировано
+    version: 1,             // data format version
+    children: [],           // child profiles
+    activeChildId: "...",   // currently selected child
+    recommendations: [],    // all suggested activities
+    feedback: [],           // feedback records
+    preferences: [],        // interests and feedback-based preferences
+    settings: {}            // reserved for future use
 }
 ```
 
-**Ребёнок** (`children[]`):
+**Child** (`children[]`):
 
-```js
+```
 {
     id: "mh2x8k4a1b2c",
-    name: "Аня",
-    birthDate: "2026-05-21",          // календарная дата, без времени
-    dueDate: "2026-05-21",            // предполагаемая дата родов, необязательно, null
-    gender: "unspecified",            // unspecified | female | male, на подбор не влияет
+    name: "Anya",
+    birthDate: "2026-05-21",          // calendar date, no time
+    dueDate: "2026-05-21",            // estimated due date, optional, null
+    gender: "unspecified",            // unspecified | female | male; does not affect recommendations
     createdAt: "2026-10-30T10:00:00.000Z",
     updatedAt: "2026-10-30T10:05:00.000Z",
     skills: [{id: "head_control", level: "developing", updatedAt: "..."}],
     conditions: {
-        duration: 0,                  // 0 = неважно, иначе максимум минут: 5, 10, 15
+        duration: 0,                  // 0 = any duration; otherwise maximum minutes: 5, 10, 15
         materials: ["rattle", "ball"],
         environment: "either",        // either | home | outdoors
         intensity: "either"           // either | calm | active
@@ -211,11 +217,11 @@ rankActivities(activeChild(), dateKey()) // все подходящие заня
 }
 ```
 
-Возраст **не хранится**: он каждый раз считается из даты рождения. Предполагаемая дата родов хранится отдельно и в расчёте возраста не участвует.
+**Age is not stored**: it is calculated from the date of birth whenever needed. The estimated due date is stored separately and does not affect age calculation.
 
-**Рекомендация** (`recommendations[]`): одно предложенное занятие на конкретный день.
+**Recommendation** (`recommendations[]`): one suggested activity for a specific child and date.
 
-```js
+```
 {
     id: "...", childId: "...", date: "2026-10-30", activityId: "peekaboo-01",
     status: "recommended",  // recommended | in_progress | completed | partially_completed | not_completed | replaced
@@ -223,64 +229,64 @@ rankActivities(activeChild(), dateKey()) // все подходящие заня
 }
 ```
 
-**Отзыв** (`feedback[]`):
+**Feedback** (`feedback[]`):
 
-```js
+```
 {
     id: "...", childId: "...", activityId: "...", recommendationId: "...", date: "2026-10-30",
     status: "completed",       // completed | partially_completed | not_completed | skipped
     interest: "liked",         // liked | neutral | disliked | not_observed
     difficulty: "appropriate", // too_easy | appropriate | too_hard | not_observed
     reason: null,              // no_time | no_materials | child_not_in_mood | not_suitable | other
-    comment: "Смеялась",
+    comment: "She laughed",
     createdAt: "..."
 }
 ```
 
-**Предпочтение** (`preferences[]`): одна запись на ребёнка и один предмет.
+**Preference** (`preferences[]`): one record per child and per preference item.
 
-```js
+```
 {
     childId: "...",
-    kind: "interest",   // interest - интерес, activity - конкретное занятие, difficulty - сложность в области развития
-    id: "music",        // id интереса, занятия или области развития
-    score: 25,          // вывод из отзывов, от -100 до 100
-    manual: "like",     // ручная отметка родителя: like | dislike | null (только для интересов)
+    kind: "interest",   // interest | activity | difficulty: an interest, a specific activity, or difficulty in a developmental area
+    id: "music",        // interest, activity, or developmental area ID
+    score: 25,          // feedback-based score, from -100 to 100
+    manual: "like",     // parent's manual selection: like | dislike | null (interests only)
     updatedAt: "..."
 }
 ```
 
-### Даты и время
+### Dates and Time
 
-- **Календарные дни** (`birthDate`, `dueDate`, `date`) хранятся строкой `ГГГГ-ММ-ДД` по местному времени. Так день не «съезжает» из-за часовых поясов.
-- **Отметки времени** (`createdAt`, `updatedAt`) хранятся в формате ISO.
-- Разница в днях считается функцией `daysBetween`, переход на летнее время на неё не влияет.
-- **Возраст** (функция `ageOf`) равен числу полных месяцев. Если ребёнок родился 31-го, то в коротком месяце «месячный день рождения» приходится на последний день месяца.
-- До 3 месяцев возраст показывается с неделями («1 мес. 2 нед.»), до 2 лет в месяцах, дальше в годах и месяцах.
+- **Calendar dates** (`birthDate`, `dueDate`, `date`) are stored as `YYYY-MM-DD` strings in local time. This prevents dates from shifting because of time zones.
+- **Timestamps** (`createdAt`, `updatedAt`) are stored in ISO format.
+- Day differences are calculated by the `daysBetween` function and are not affected by daylight saving time.
+- **Age** (the `ageOf` function) is the number of completed months. If a child was born on the 31st, their monthly birthday falls on the last day of a shorter month.
+- Until 3 months, age is displayed in months and weeks (e.g. "1 mo. 2 wk."). Until 2 years, it is displayed in months; after that, in years and months.
 
-### Защита данных
+### Data Protection
 
-- Если сохранённые данные не читаются (повреждённый JSON), приложение не затирает их, а откладывает копию под ключом `childActivityPlanner-unreadable-<время>` и начинает с чистого листа.
-- Импорт сначала проверяет файл (функция `isValidImport`). Неправильный файл ничего не меняет. Перед заменой данных пользователь подтверждает действие.
-- Удаление всех данных тоже требует подтверждения.
-- Изменения кода и каталога данные пользователя не трогают.
+- If saved data cannot be read (for example, because the JSON is corrupted), the app does not overwrite it. Instead, it saves a backup under the key `childActivityPlanner-unreadable-<timestamp>` and starts with an empty data set.
+- Imported files are validated first using `isValidImport`. An invalid file does not change anything. The user must confirm before existing data is replaced.
+- Deleting all data also requires confirmation.
+- Code and catalogue updates do not affect user data.
 
-### Если меняется формат данных
+### Changing the Data Format
 
-Увеличьте `DATA_VERSION` и добавьте перевод старых данных в новый формат в `loadData()` (там оставлен комментарий). Старые файлы экспорта с меньшей версией должны продолжать импортироваться.
+Increment `DATA_VERSION` and add a migration from the old format to the new one in `loadData()` (a comment marks the relevant place). Older export files with a lower version must remain importable.
 
-## Каталог занятий
+## Activity Catalogue
 
-### Формат
+### Format
 
-`data/activities.json` - это массив занятий. Пример одного:
+`data/activities.json` is an array of activities. Here is an example of one activity:
 
-```json
+```
 {
   "id": "sound-exploration-01",
-  "title": "Знакомимся со звуками",
-  "description": "Знакомство с мягкими звуками с помощью подходящей погремушки.",
-  "goal": "Поддержать слуховое внимание и взаимодействие.",
+  "title": "Exploring Sounds",
+  "description": "Discovering gentle sounds using an age-appropriate rattle.",
+  "goal": "Encourage auditory attention and interaction.",
   "ageMinMonths": 3,
   "ageMaxMonths": 6,
   "areas": ["sensory", "cognitive"],
@@ -291,9 +297,9 @@ rankActivities(activeChild(), dateKey()) // все подходящие заня
   "materials": ["rattle"],
   "environment": "home",
   "intensity": "calm",
-  "instructions": ["Расположитесь рядом с ребёнком.", "Покажите погремушку."],
-  "variations": {"easier": "Один мягкий звук.", "harder": "Разные звуки с паузами."},
-  "safety": ["Используйте целую игрушку, подходящую по возрасту."],
+  "instructions": ["Sit next to the child.", "Show the rattle."],
+  "variations": {"easier": "Make one gentle sound.", "harder": "Make different sounds with pauses."},
+  "safety": ["Use an intact toy that is appropriate for the child's age."],
   "safetyReviewed": false,
   "sources": [],
   "videos": [],
@@ -302,249 +308,259 @@ rankActivities(activeChild(), dateKey()) // все подходящие заня
 }
 ```
 
-| Поле | Что это | Обязательно |
-|---|---|---|
-| `id` | Уникальный идентификатор латиницей. **Не меняйте** у существующих занятий: на него ссылается история | да |
-| `title`, `description`, `goal` | Название, короткое описание, чему помогает занятие | да |
-| `ageMinMonths`, `ageMaxMonths` | Возраст в полных месяцах, включительно | да |
-| `areas` | Области развития, хотя бы одна | да |
-| `skillTags`, `interestTags` | Навыки и интересы (может быть пустой массив) | да |
-| `difficulty` | `easy`, `medium` или `challenging` | да |
-| `duration` | Примерная длительность в минутах | да |
-| `materials` | Что нужно; пустой массив, если ничего | да |
-| `environment` | `home`, `outdoors` или `either` | да |
-| `intensity` | `calm` или `active` | да |
-| `instructions` | Шаги по порядку, хотя бы один | да |
-| `safety` | Правила безопасности, хотя бы одно | да |
-| `variations` | `{easier, harder}`: как упростить и как усложнить | нет |
-| `sources`, `videos` | Ссылки (может быть пустой массив) | да |
-| `safetyReviewed` | Прошло ли занятие проверку безопасности | да |
-| `enabled` | Включено ли занятие | да |
-| `demo` | Пометка демонстрационного содержимого | нет |
+| Field                          | Description                                                                                                             | Required |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| `id`                           | Unique identifier using Latin characters. **Do not change** IDs of existing activities: they are referenced in history. | yes      |
+| `title`, `description`, `goal` | Title, short description, and what the activity helps develop.                                                          | yes      |
+| `ageMinMonths`, `ageMaxMonths` | Age range in completed months, inclusive.                                                                               | yes      |
+| `areas`                        | Developmental areas; at least one.                                                                                      | yes      |
+| `skillTags`, `interestTags`    | Skills and interests (may be empty arrays).                                                                             | yes      |
+| `difficulty`                   | `easy`, `medium`, or `challenging`.                                                                                     | yes      |
+| `duration`                     | Approximate duration in minutes.                                                                                        | yes      |
+| `materials`                    | Required materials; use an empty array if none are needed.                                                              | yes      |
+| `environment`                  | `home`, `outdoors`, or `either`.                                                                                        | yes      |
+| `intensity`                    | `calm` or `active`.                                                                                                     | yes      |
+| `instructions`                 | Ordered steps; at least one.                                                                                            | yes      |
+| `safety`                       | Safety instructions; at least one.                                                                                      | yes      |
+| `variations`                   | `{easier, harder}`: ways to simplify or make the activity more challenging.                                             | no       |
+| `sources`, `videos`            | Links (may be empty arrays).                                                                                            | yes      |
+| `safetyReviewed`               | Whether the activity has passed a safety review.                                                                        | yes      |
+| `enabled`                      | Whether the activity is enabled.                                                                                        | yes      |
+| `demo`                         | Marks demonstration content.                                                                                            | no       |
 
-Если у занятия не хватает обязательного поля, приложение его пропускает и пишет в консоль `Incomplete activity skipped: <id>`.
+If an activity is missing a required field, the app skips it and logs `Incomplete activity skipped: <id>` to the console.
 
-### Словарь: области, навыки, интересы, материалы
+### Dictionary: Areas, Skills, Interests, and Materials
 
-Использовать можно **только** значения из словаря. Новые слова на ходу не придумываются, иначе подбор и фильтры перестанут их понимать. Словарь лежит в начале `script.js`:
+**Only** values from the dictionaries may be used. Do not invent new terms on the fly, or the recommendation algorithm and filters will not recognise them.
 
-- `AREAS` - 6 областей развития: `gross_motor`, `fine_motor`, `sensory`, `cognitive`, `communication`, `social_emotional`;
-- `SKILLS` - навыки, сгруппированные по областям;
-- `INTERESTS` - интересы (`music`, `sounds`, `faces`, ...);
-- `MATERIALS` - материалы (`rattle`, `ball`, `blanket`, ...).
+The dictionaries are at the beginning of `script.js`:
 
-Подписи к ним на русском лежат в `STRINGS.ru` в `areas`, `skills`, `interests`, `materials`.
+- `AREAS` — 6 developmental areas: `gross_motor`, `fine_motor`, `sensory`, `cognitive`, `communication`, `social_emotional`.
+- `SKILLS` — skills grouped by developmental area.
+- `INTERESTS` — interests (`music`, `sounds`, `faces`, ...).
+- `MATERIALS` — materials (`rattle`, `ball`, `blanket`, ...).
 
-### Видео и источники
+Their Russian labels are in `STRINGS.ru`, under `areas`, `skills`, `interests`, and `materials`.
 
-```json
+### Videos and Sources
+
+```
 "videos": [
-  {"title": "Название видео", "url": "https://...", "language": "ru", "duration": "3:20", "sourceName": "Канал или сайт"}
+  {"title": "Video title", "url": "https://...", "language": "en", "duration": "3:20", "sourceName": "Channel or website"}
 ],
 "sources": [
-  {"title": "Название материала", "url": "https://...", "sourceName": "Организация"}
+  {"title": "Resource title", "url": "https://...", "sourceName": "Organisation"}
 ]
 ```
 
-- Ссылки открываются в новой вкладке (`target="_blank" rel="noopener noreferrer"`), ссылки не на `http(s)` не показываются.
-- Видео не встраиваются в приложение и не скачиваются.
-- Не придумывайте адреса: добавляйте только реальные проверенные ссылки. Видео не доказывает, что занятие безопасно.
+- Links open in a new tab (`target="_blank" rel="noopener noreferrer"`). Links that do not use `http(s)` are not displayed.
+- Videos are not embedded in the app or downloaded.
+- Do not invent URLs: only add real, verified links. A video does not prove that an activity is safe.
 
-### Проверка безопасности
+### Safety Review
 
-Занятие попадает в рекомендации, только если у него `"enabled": true` **и** `"safetyReviewed": true`. Непроверенные занятия видны в каталоге с пометкой «Не проверено» и не предлагаются на экране «Сегодня».
+An activity is eligible for recommendations only when both `"enabled": true` **and** `"safetyReviewed": true`.
 
-Порядок работы с занятием:
+Unreviewed activities are visible in the catalogue with an "Unreviewed" label, but are not suggested on the Today screen.
 
-1. Специалист проверяет: подходит ли возраст, нет ли риска подавиться, упасть, перегреться; полные ли правила безопасности; нет ли медицинских обещаний.
-2. При необходимости правит текст и добавляет реальные источники.
-3. Ставит `"safetyReviewed": true` и убирает `"demo": true`.
+The review process:
 
-Сгенерированные (демонстрационные) занятия нельзя помечать проверенными без такой проверки. Приложение не стоит давать семьям, пока в каталоге мало проверенных занятий для каждого возраста от 0 до 12 месяцев.
+1. A specialist checks whether the activity is age-appropriate, whether it poses choking, falling, or overheating risks, whether the safety instructions are complete, and whether it makes any medical claims.
+2. The specialist edits the text if necessary and adds genuine sources.
+3. The specialist sets `"safetyReviewed": true` and removes `"demo": true`.
 
-## Как подбирается занятие дня
+Generated (demonstration) activities must not be marked as reviewed without this process. The app should not be made available to families until there are enough reviewed activities for every age from 0 to 12 months.
 
-Алгоритм находится в разделе `// 11. RECOMMENDATIONS` в `script.js`. Он простой и предсказуемый: никакого машинного обучения и внешних сервисов, одни и те же данные всегда дают один и тот же результат.
+## How the Daily Activity Is Selected
 
-### Шаг 1. Отбор
+The algorithm is in section `// 11. RECOMMENDATIONS` in `script.js`. It is simple and predictable: there is no machine learning or external service. The same input data always produces the same result.
 
-Занятие отбрасывается, если:
+### Step 1. Filtering
 
-- оно выключено (`enabled`) или не проверено (`safetyReviewed`);
-- не подходит по возрасту: возраст ребёнка вне `ageMinMonths…ageMaxMonths`;
-- не подходит под условия родителя: выбрано «Дома», а занятие только на улице; выбрано «Спокойные», а занятие подвижное;
-- у него не хватает обязательных полей (такие занятия убираются ещё при загрузке каталога).
+An activity is excluded if:
 
-Занятие **не** отбрасывается только потому, что родитель ещё не отмечал связанный навык.
+- It is disabled (`enabled`) or has not been reviewed (`safetyReviewed`).
+- It is not age-appropriate: the child's age falls outside `ageMinMonths…ageMaxMonths`.
+- It does not match the parent's selected conditions: for example, "At home" is selected but the activity is outdoors only, or "Calm" is selected but the activity is active.
+- It is missing required fields (such activities are already removed when the catalogue is loaded).
 
-### Шаг 2. Оценка
+An activity is **not** excluded simply because the parent has not yet recorded the related skill.
 
-Каждое оставшееся занятие получает 6 оценок от 0 до 100. Потом они складываются с весами из `RECOMMENDATION_WEIGHTS` (можно менять в одном месте):
+### Step 2. Scoring
 
-| Оценка | Вес | Как считается |
-|---|---|---|
-| Возраст (`ageFit`) | 0.2 | 100, если ребёнок в середине возрастного диапазона занятия; 60 на краях |
-| Навыки (`skillFit`) | 0.2 | Насколько навыки занятия актуальны: «появляется» 100, «иногда» 85, «не замечали» 60, «уверенно» 40. Плюс подходит ли сложность занятия: её сдвигают отзывы «слишком легко» и «сложновато» |
-| Интересы (`interestFit`) | 0.2 | 50 плюс половина среднего балла интересов занятия. Ручная отметка «нравится» даёт +100, «не нравится» -100 |
-| Отзывы (`feedbackFit`) | 0.2 | Насколько занятие похоже на те, что понравились или не понравились раньше. Похожесть определяется по общим областям, навыкам и интересам |
-| Разнообразие (`diversity`) | 0.1 | Выше, если области развития занятия реже встречались за последние 7 дней |
-| Удобство (`practicalFit`) | 0.1 | Укладывается ли в выбранное время, есть ли нужные материалы. Если родитель не отметил материалы, они считаются неизвестными (70), а не отсутствующими |
+Each remaining activity receives six scores from 0 to 100. These are then combined using the weights in `RECOMMENDATION_WEIGHTS`, which can be adjusted in one place:
 
-### Шаг 3. Повторы и новизна
+| Score                          | Weight | Calculation                                                                                                                                                                                                                             |
+| ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Age fit (`ageFit`)             | 0.2    | 100 if the child is in the middle of the activity's age range; 60 at either end.                                                                                                                                                        |
+| Skill fit (`skillFit`)         | 0.2    | How relevant the activity's skills are: "emerging" = 100, "sometimes" = 85, "not observed" = 60, "confident" = 40. Also considers whether the activity difficulty is appropriate: feedback such as "too easy" or "too hard" adjusts it. |
+| Interest fit (`interestFit`)   | 0.2    | 50 plus half the average score of the activity's interests. A manual "like" adds +100; "dislike" adds -100.                                                                                                                             |
+| Feedback fit (`feedbackFit`)   | 0.2    | How similar the activity is to those the child previously liked or disliked. Similarity is based on shared developmental areas, skills, and interests.                                                                                  |
+| Diversity (`diversity`)        | 0.1    | Higher when the activity's developmental areas have appeared less frequently in the past 7 days.                                                                                                                                        |
+| Practical fit (`practicalFit`) | 0.1    | Whether the activity fits the selected duration and whether the required materials are available. If the parent has not specified which materials are available, they are treated as unknown (70), not unavailable.                     |
 
-К сумме добавляются поправки:
+### Step 3. Repetition and Novelty
 
-- **−60** за то же занятие, если оно было в последние 7 дней. Штраф тает со временем: вчера почти полный, неделю назад маленький.
-- **до −20** за похожие занятия за последние 7 дней, пропорционально похожести.
-- **+10** за занятие, которое ребёнку ещё ни разу не предлагали.
-- **+5** за занятие с интересом, о котором ещё ничего не известно. Так приложение иногда предлагает новое, а не только то, что уже нравится.
+The total score is adjusted as follows:
 
-Побеждает занятие с наибольшим итоговым баллом. При равенстве выбирается то, что стоит раньше в каталоге.
+- **−60** for the same activity if it was suggested within the past 7 days. The penalty decreases over time: it is almost full yesterday and small a week ago.
+- **Up to −20** for similar activities suggested within the past 7 days, proportional to their similarity.
+- **+10** for an activity that has never been suggested to the child before.
+- **+5** for an activity involving an interest the app does not yet know about. This allows the app to occasionally suggest something new instead of focusing only on known preferences.
 
-Посмотреть баллы всех занятий можно в консоли: `rankActivities(activeChild(), dateKey())`.
+The activity with the highest final score wins. In case of a tie, the activity appearing first in the catalogue is selected.
 
-### Одно занятие на день
+You can inspect the scores of all activities in the console using `rankActivities(activeChild(), dateKey())`.
 
-- Занятие дня выбирается один раз для каждого ребёнка и даты и сохраняется. После перезапуска приложения оно то же самое.
-- «Другое занятие» заменяет его: старое остаётся в истории со статусом `replaced`. Замена **не считается** плохим отзывом. Сегодняшние занятия повторно не предлагаются, пока не закончатся остальные.
-- Если занятие дня уже завершено, кнопка называется «Ещё одно занятие», а завершённое остаётся завершённым.
-- Если занятие дня исчезло из каталога или с него сняли отметку о проверке, оно заменяется новым.
-- Если ничего не подходит, приложение объясняет почему и предлагает открыть каталог или изменить условия.
+### One Activity per Day
 
-## Как работают отзывы
+- The daily activity is selected once for each child and date, then saved. It remains the same after the app is restarted.
+- "Another Activity" replaces the current activity. The previous one remains in history with the `replaced` status. Replacement **does not count** as negative feedback. Activities already suggested today are not suggested again until the remaining options have been exhausted.
+- If the daily activity has already been completed, the button changes to "One More Activity", and the completed activity remains completed.
+- If the daily activity is removed from the catalogue or its review status is revoked, it is replaced with a new one.
+- If nothing is suitable, the app explains why and suggests opening the catalogue or changing the conditions.
 
-Раздел `// 12. FEEDBACK`. После «Завершить» открывается короткая форма: результат, интерес ребёнка, сложность, причина (если не получилось) и комментарий.
+## How Feedback Works
 
-| Ответ | Что меняется |
-|---|---|
-| «Понравилось» | +25 к каждому интересу занятия и +25 к самому занятию |
-| «Не понравилось» | −25 к ним же |
-| «Нейтрально», «Не заметно» | ничего |
-| «Сложновато» | −50 к сложности в каждой области занятия: дальше будет больше простых занятий |
-| «Слишком легко» | +50: дальше будет чуть больше сложных занятий |
-| Причина «Не подходит» | −25 к самому занятию |
-| «Не было времени», «Нет материалов», «Не было настроения», «Другое» | **ничего**: это не значит, что ребёнку не понравилось |
-| «Пропустили» | интерес и сложность не спрашиваются и не меняются |
+Feedback logic is in section `// 12. FEEDBACK`. After tapping "Complete", a short form appears with the outcome, the child's interest, difficulty, the reason (if the activity was unsuccessful), and an optional comment.
 
-Правила:
+| Response                                              | Effect                                                                                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| "Liked it"                                            | +25 to each of the activity's interests and +25 to the activity itself.                                                               |
+| "Didn't like it"                                      | −25 to the same items.                                                                                                                |
+| "Neutral", "Not observed"                             | No change.                                                                                                                            |
+| "Too hard"                                            | −50 to the difficulty score in each developmental area covered by the activity. More easy activities will be suggested in the future. |
+| "Too easy"                                            | +50: somewhat more challenging activities will be suggested in the future.                                                            |
+| Reason: "Not suitable"                                | −25 to the activity itself.                                                                                                           |
+| "No time", "No materials", "Not in the mood", "Other" | **No change**: these reasons do not mean the child disliked the activity.                                                             |
+| "Skipped"                                             | Interest and difficulty are not asked about or changed.                                                                               |
 
-- Баллы накапливаются в пределах от −100 до 100. Три отзыва «не понравилось» весят больше одного, но занятие или интерес никогда не исключаются полностью.
-- **Ручная отметка родителя всегда важнее выводов.** В профиле одно нажатие на интерес означает «нравится», второе «не нравится», третье снимает отметку. Стрелки ↑ и ↓ на интересах показывают то, что приложение заметило по отзывам (от ±25).
-- «Сбросить выводы из отзывов» в настройках стирает выводы выбранного ребёнка. История и ручные отметки остаются.
-- Пропущенные дни ни на что не влияют.
+Rules:
 
-Для отзыва «Пропустили» у самой рекомендации ставится статус `not_completed`: в списке статусов рекомендации нет отдельного «пропущено». В отзыве сохраняется `skipped`, и в интерфейсе показывается «Пропущено».
+- Scores accumulate within the range of −100 to 100. Three negative feedback entries have a greater effect than one, but an activity or interest is never permanently excluded.
+- **The parent's manual selection always overrides feedback-based preferences.** In the profile, one tap on an interest marks it as "like", a second as "dislike", and a third removes the selection. The ↑ and ↓ indicators next to interests show what the app has inferred from feedback (starting at ±25).
+- "Reset Feedback-based Preferences" in Settings clears the inferred preferences for the selected child. History and manual selections are preserved.
+- Skipped days have no effect.
 
-## Офлайн и обновления
+For feedback marked as "Skipped", the recommendation itself receives the `not_completed` status: the recommendation status list does not have a separate `skipped` value. The feedback record stores `skipped`, and the UI displays "Skipped".
 
-Офлайн-режимом занимается `sw.js` (service worker).
+## Offline Mode and Updates
 
-- При первой загрузке он кладёт в кэш все файлы приложения из списка `APP_SHELL`, включая каталог.
-- Дальше каждый файл сначала отдаётся из кэша (это быстро и работает без сети), а в фоне скачивается свежая версия. Поэтому **изменения появляются со второго открытия**, а открытая страница никогда не перезагружается сама.
-- Внешние ссылки (видео, источники) не кэшируются и без интернета не открываются.
+Offline functionality is handled by `sw.js` (the service worker).
 
-**При выпуске новой версии** увеличьте `CACHE_VERSION` в `sw.js` (например, `"6"` → `"7"`). Тогда старый кэш удалится целиком, а файлы загрузятся заново. Если добавили новый файл, допишите его в `APP_SHELL`.
+- On the first load, it caches all application files listed in `APP_SHELL`, including the catalogue.
+- On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
+- External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-Данные пользователя лежат в `localStorage`, а не в кэше, поэтому обновления их не затрагивают.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"13"` → `"14"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
-## Переводы
+User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
-Сейчас интерфейс только на русском, но код готов к другим языкам:
+## Translations
 
-- Все тексты интерфейса лежат в `STRINGS.ru` в `script.js`. В коде к ним обращаются через `S.имяКлюча`.
-- В разметке тексты подставляются по атрибутам: `data-i18n` (текст элемента), `data-i18n-aria-label` (`aria-label`), `data-i18n-placeholder`.
-- Тексты с числами или именами сделаны функциями, например `deleteChildQuestion: (name) => ...`.
-- Даты форматируются средствами браузера (`toLocaleDateString`, `Intl.RelativeTimeFormat`) по `S.locale`.
+The interface is currently available only in Russian, but the code is ready for additional languages:
 
-Чтобы добавить язык, скопируйте объект `ru` в `STRINGS` под новым кодом (например, `en`), переведите значения и выберите язык в константе `LANG`.
+- All UI text is stored in `STRINGS.ru` in `script.js`. The code accesses it through `S.keyName`.
+- Text is inserted into the markup using attributes: `data-i18n` (element text), `data-i18n-aria-label` (`aria-label`), and `data-i18n-placeholder`.
+- Text containing numbers or names is implemented as functions, for example `deleteChildQuestion: (name) => ...`.
+- Dates are formatted using browser APIs (`toLocaleDateString`, `Intl.RelativeTimeFormat`) according to `S.locale`.
 
-Тексты самих занятий в `activities.json` пока только на русском.
+To add a language, copy the `ru` object inside `STRINGS` under a new language code (for example, `en`), translate its values, and select the language using the `LANG` constant.
 
-## Оформление
+The activity descriptions in `activities.json` are currently available only in Russian.
 
-Все стили в `styles.css`, тоже по разделам.
+## Styling
 
-- **Цвета** заданы переменными в начале файла (`--bg`, `--text`, `--accent` и т. д.). Светлая и тёмная тема переключаются автоматически по настройке системы (`prefers-color-scheme`). Новые цвета не пишите прямо в правилах, добавляйте переменные.
-- **Контраст** основных текстов проверен в обеих темах. Акцентные и второстепенные цвета взяты из палитры boilerplate; при их смене проверяйте контраст заново.
-- **Фирменная деталь** - «кубики» из иконки приложения: номера шагов на цветных кубиках (`.steps`) и цветные квадратики областей развития (`.area-*`). Остальное оформление намеренно спокойное.
-- **Раскладка** - колонка до 500 px (`.width-500`), нижняя навигация с учётом safe-area, шторки снизу шириной до 560 px.
-- **Компоненты** - кнопки-пилюли (`.tap`, `.tap.selected`), компактные чипы (`.tap.chip`), сегменты (`.segment`), поля `.input`, шторки `.sheet` / `.sheet.full`, окно `.dialog` и выбор из списка: кнопка `.select` открывает общую центрированную шторку с вариантами `.option`. Новые похожие элементы не нужны: сначала ищите подходящий класс.
-- **Шрифты** системные, без загружаемых файлов; базовый размер 18 px.
-- **Иконки** лежат в `sprite.svg` и подключаются так: `<svg><use href="sprite.svg#имя"></use></svg>`.
-- **Поля ввода** не меньше 16px, иначе iPhone приближает страницу при касании.
-- У всех интерактивных элементов есть видимая рамка фокуса для работы с клавиатуры (`:focus-visible`).
-- **Анимация** только у появления шторок и отключается, если в системе включено «уменьшить движение».
+All styles are in `styles.css`, also organised into sections.
 
-## Частые задачи
+- **Colours** are defined as variables at the beginning of the file (`--bg`, `--text`, `--accent`, etc.). The light and dark themes switch automatically based on the system setting (`prefers-color-scheme`). Do not hardcode new colours in CSS rules; add variables instead.
+- **Contrast** of the main text has been checked in both themes. Accent and secondary colours come from the boilerplate palette; recheck contrast whenever they are changed.
+- **Signature detail** — the "blocks" from the app icon: step numbers displayed on coloured blocks (`.steps`) and coloured squares for developmental areas (`.area-*`). The rest of the design is intentionally understated.
+- **Layout** — a column up to 500 px wide (`.width-500`), bottom navigation that accounts for the safe area, and bottom sheets up to 560 px wide.
+- **Components** — pill-shaped buttons (`.tap`, `.tap.selected`), compact chips (`.tap.chip`), segments (`.segment`), input fields (`.input`), bottom sheets (`.sheet` / `.sheet.full`), dialog (`.dialog`), and list selection: a `.select` button opens a shared, centred bottom sheet with `.option` items. The child selector includes an "Add Child" button. There is no need to create similar new elements: look for an existing class first.
+- **Fonts** — system fonts only, with no downloaded font files; base font size is 18 px.
+- **Icons** are stored in `sprite.svg` and included as follows: `<svg><use href="sprite.svg#name"></use></svg>`.
+- **Input fields** must be at least 16 px, otherwise iPhones automatically zoom in when they are tapped.
+- All interactive elements have a visible focus outline for keyboard navigation (`:focus-visible`).
+- **Animations** are used only when bottom sheets appear and are disabled when the system setting "Reduce Motion" is enabled.
 
-### Добавить занятие
+## Common Tasks
 
-1. Скопируйте любое занятие в `data/activities.json` и дайте ему новый уникальный `id`.
-2. Заполните поля, используя значения только из словаря (`AREAS`, `SKILLS`, `INTERESTS`, `MATERIALS`).
-3. Оставьте `"safetyReviewed": false`, пока занятие не проверено.
-4. Откройте раздел «Занятия» и убедитесь, что занятие появилось, а в консоли нет предупреждений.
+### Add an Activity
 
-### Добавить новый интерес или материал
+1. Copy an existing activity in `data/activities.json` and give it a new unique `id`.
+2. Fill in the fields using only values from the dictionaries (`AREAS`, `SKILLS`, `INTERESTS`, `MATERIALS`).
+3. Keep `"safetyReviewed": false` until the activity has been reviewed.
+4. Open the Activities section and make sure the activity appears and there are no warnings in the console.
 
-1. Добавьте id в `INTERESTS` или `MATERIALS` в начале `script.js`.
-2. Добавьте подпись в `STRINGS.ru.interests` или `STRINGS.ru.materials`.
-3. Используйте этот id в занятиях.
+### Add a New Interest or Material
 
-Навыки добавляются так же, через `SKILLS` и `STRINGS.ru.skills`.
+1. Add an ID to `INTERESTS` or `MATERIALS` at the beginning of `script.js`.
+2. Add its label to `STRINGS.ru.interests` or `STRINGS.ru.materials`.
+3. Use the new ID in activities.
 
-### Поменять логику подбора
+Skills are added in the same way, using `SKILLS` and `STRINGS.ru.skills`.
 
-- Веса оценок задаёт `RECOMMENDATION_WEIGHTS`.
-- Штрафы и бонусы: `SAME_ACTIVITY_PENALTY`, `SIMILAR_ACTIVITY_PENALTY`, `NOVELTY_BONUS`, `EXPLORE_BONUS`, `HISTORY_DAYS`.
-- Влияние отзывов: `PREFERENCE_STEP`, `DIFFICULTY_STEP`.
+### Change the Recommendation Logic
 
-После изменения проверьте в консоли `rankActivities(activeChild(), dateKey())`, как поменялся порядок.
+- Scoring weights are defined by `RECOMMENDATION_WEIGHTS`.
+- Penalties and bonuses: `SAME_ACTIVITY_PENALTY`, `SIMILAR_ACTIVITY_PENALTY`, `NOVELTY_BONUS`, `EXPLORE_BONUS`, `HISTORY_DAYS`.
+- Feedback impact: `PREFERENCE_STEP`, `DIFFICULTY_STEP`.
 
-### Выпустить новую версию
+After making changes, run `rankActivities(activeChild(), dateKey())` in the console to see how the ranking has changed.
 
-1. Увеличьте `CACHE_VERSION` в `sw.js`.
-2. Выложите файлы на хостинг.
-3. Откройте приложение два раза: на втором открытии должна быть новая версия.
+### Release a New Version
 
-### Начать с чистыми данными
+1. Increment `CACHE_VERSION` in `sw.js`.
+2. Upload the files to your hosting service.
+3. Open the app twice: the new version should appear on the second load.
 
-DevTools → Application → Local Storage → удалить ключ `childActivityPlanner`. Или в приложении: «Настройки» → «Удалить все данные».
+### Start with a Clean Data Set
 
-Если приложение «залипло» на старой версии: DevTools → Application → Storage → Clear site data. **Это удалит и данные пользователя.**
+DevTools → Application → Local Storage → delete the `childActivityPlanner` key.
 
-## Проверка перед выпуском
+Alternatively, in the app, go to Settings → "Delete All Data".
 
-Автотестов в репозитории нет. Перед выпуском пройдите вручную:
+If the app gets stuck on an old version: DevTools → Application → Storage → Clear site data.
 
-- [ ] Создать ребёнка, изменить, удалить. Возраст считается правильно.
-- [ ] Отметить навыки, интересы, условия. После перезагрузки всё на месте.
-- [ ] С двумя детьми у каждого своё занятие дня, история и интересы.
-- [ ] Занятие дня не меняется после перезагрузки; «Другое занятие» не повторяет текущее.
-- [ ] «Начать» → уйти на другой экран → вернуться: статус сохранился.
-- [ ] Отзыв сохраняется и виден в «Истории»; «Не было времени» не меняет интересы.
-- [ ] Поиск и все фильтры каталога работают; описание занятия открывается.
-- [ ] Экспорт, импорт (и отказ от импорта неправильного файла), удаление всех данных.
-- [ ] Офлайн: открыть приложение, выключить сеть, перезагрузить, всё открывается.
-- [ ] Ширина 320 px, обычный телефон и компьютер; светлая и тёмная тема; нет горизонтальной прокрутки.
-- [ ] В консоли браузера нет ошибок.
-- [ ] Приложение устанавливается (Chrome → DevTools → Application → Manifest без ошибок).
+**This will also delete user data.**
 
-## Ограничения
+## Pre-release Checklist
 
-- Каталог демонстрационный и не проверен специалистом. Источников и видео пока нет.
-- Тексты занятий только на русском.
-- Отправленный отзыв нельзя отредактировать.
-- Данные живут в одном браузере на одном устройстве; синхронизации нет, только экспорт и импорт.
-- Напоминаний и уведомлений нет (так задумано в первой версии).
-- Проверялось в Chrome с эмуляцией телефона; на настоящих iPhone и Android в Safari и Firefox стоит перепроверить.
+There are no automated tests in the repository. Before releasing, go through this checklist manually:
 
-## Правила разработки
+- Create, edit, and delete a child. Check that age is calculated correctly.
+- Add skills, interests, and conditions. Make sure everything is still there after reloading.
+- With two children, each child has their own daily activity, history, and interests.
+- The daily activity remains unchanged after reloading; "Another Activity" does not suggest the current activity again.
+- Tap "Start", switch to another screen, and return: the status is preserved.
+- Feedback is saved and appears in History; "No time" does not change interests.
+- Catalogue search and all filters work; activity descriptions open correctly.
+- Test export, import (including rejecting an invalid file), and deleting all data.
+- Test offline mode: open the app, turn off the network, reload, and make sure everything still works.
+- Check a 320 px viewport, a regular phone, and a desktop; both light and dark themes; no horizontal scrolling.
+- No errors appear in the browser console.
+- The app can be installed (Chrome → DevTools → Application → Manifest, with no errors).
 
-Коротко из `AGENTS.md` и `CLAUDE.md` в корне репозитория:
+## Limitations
 
-- Только HTML, CSS и JavaScript без библиотек, фреймворков, сборки и `package.json`.
-- Вся логика в `script.js`, без `import`/`export` и без новых JS-файлов.
-- Делайте минимальные изменения под задачу, не переписывайте работающий код «заодно».
-- Пишите просто: без лишних абстракций, проверок «на всякий случай» и дублирования.
-- Следуйте стилю окружающего кода: стрелочные функции, `const`, тексты через `S`, элементы через `el()`.
-- Перед коммитом посмотрите `git diff` и проверьте приложение в браузере.
+- The catalogue is for demonstration purposes and has not been reviewed by a specialist. There are no sources or videos yet.
+- Activity descriptions are available only in Russian.
+- Submitted feedback cannot be edited.
+- Data is stored in one browser on one device. There is no synchronisation, only export and import.
+- There are no reminders or notifications (this is intentional in the first version).
+- The app has been tested in Chrome using mobile emulation. It should also be tested on real iPhones and Android devices, including Safari and Firefox.
+
+## Development Guidelines
+
+A summary of `AGENTS.md` and `CLAUDE.md` in the repository root:
+
+- Use only HTML, CSS, and JavaScript. No libraries, frameworks, build tools, or `package.json`.
+- Keep all logic in `script.js`, without `import` / `export` or additional JavaScript files.
+- Make minimal changes that address the task. Do not rewrite working code "while you're at it".
+- Keep the code simple: avoid unnecessary abstractions, excessive defensive checks, and duplication.
+- Follow the surrounding code style: arrow functions, `const`, text through `S`, and elements through `el()`.
+- Review `git diff` and test the app in a browser before committing.
+
+Resolve the catalogue-count inconsistencyClarify the empty Today screen workflow

@@ -21,6 +21,7 @@
 
 <header id="top" class="width-500 hidden">
     <div class="row gap-10 pad-20">
+        <button id="header-add-child" class="tap add-child hidden" type="button" data-i18n="addChild"></button>
         <button id="child-select" class="select" type="button" aria-haspopup="dialog"
                 data-i18n-aria-label="selectChild">
             <span class="select-value"></span>
@@ -88,7 +89,7 @@
                 </svg>
             </button>
         </div>
-        <div id="filter-area" class="chips" role="group" data-i18n-aria-label="filterArea"></div>
+        <div id="filter-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
         <div class="row gap-10 filters">
             <label class="field">
                 <span class="label" data-i18n="filterAge"></span>
@@ -122,13 +123,9 @@
 <section id="history-page" class="width-500 safe hidden">
     <h2 data-i18n="history"></h2>
     <div class="pad-20 col gap-15">
-        <div id="history-filter" class="segment" style="--n:3;--i:0" role="group"
-             data-i18n-aria-label="historyFilterLabel">
-            <button type="button" data-filter="all" class="active"></button>
-            <button type="button" data-filter="completed"></button>
-            <button type="button" data-filter="skipped"></button>
-        </div>
-        <div id="history-area" class="chips scroll-x" role="group" data-i18n-aria-label="filterArea"></div>
+        <div id="history-filter" class="chips tabs" role="group"
+             data-i18n-aria-label="historyFilterLabel"></div>
+        <div id="history-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
     </div>
     <ul id="history-list" class="list"></ul>
     <p id="history-empty" class="empty hidden" data-i18n="historyEmpty"></p>
@@ -377,6 +374,7 @@
         </button>
     </div>
     <div id="options-list" class="options sheet-scroll"></div>
+    <button id="options-add-child" class="tap add-child hidden" type="button" data-i18n="addChild"></button>
 </div>
 
 <div id="modal" hidden>

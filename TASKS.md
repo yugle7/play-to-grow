@@ -17,7 +17,7 @@ Update the application header:
 
 Make sure the UI updates immediately after a child is created, without requiring a page reload.
 
-## Task 3 — Replace red highlighting with strikethrough and dimming gray
+## Replace red highlighting with strikethrough and dimming gray
 
 Variants in "#interests" currently use red text and red highlighting to indicate their state.
 
@@ -27,7 +27,7 @@ Replace this visual treatment with:
 
 Do not use red as the primary indicator for these states anymore. Preserve the existing layout and other visual states.
 
-## Task 4 — Update warning styling
+## Update warning styling
 
 Update the appearance of warning messages:
 - Use a subtle yellowish background.
