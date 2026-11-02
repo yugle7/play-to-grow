@@ -1,12 +1,3 @@
-## Update the activity-sheet header and close button
-
-Change the layout of `#activity-sheet`:
-- Remove the existing header that contains the close icon.
-- Move the close icon to the top-right corner of the activity sheet.
-- Keep the close button easily accessible and visually consistent with the rest of the interface.
-
-Preserve the existing close behavior.
-
 ## Simplify activity actions and replace text buttons with SVG icons
 
 Update the activity flow in `#today-activity`:
