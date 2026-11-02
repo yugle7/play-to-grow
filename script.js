@@ -372,7 +372,7 @@ const STRINGS = {
             unknown: "Не замечали",
             emerging: "Появляется",
             developing: "Иногда",
-            g: "Уверенно",
+            confident: "Уверенно",
         },
         interests: {
             music: "Музыка",
@@ -1587,30 +1587,26 @@ const renderSkills = (child) =>
                     count,
                 ),
                 ...SKILLS[area].map((id) => {
-                    const level = skillLevel(child, id);
-                    const select = el(
-                        "button",
-                        {type: "button", className: "input select"},
-                        el("span", {className: "select-value", textContent: S.levels[level]}),
-                    );
-                    select.setAttribute("aria-haspopup", "dialog");
-                    select.onclick = () => {
-                        openOptions(
-                            S.skills[id],
-                            SKILL_LEVELS.map((value) => ({value, label: S.levels[value]})),
-                            skillLevel(child, id),
-                            (value) => {
-                                setSkillLevel(child, id, value);
-                                setSelectValue(select, S.levels[value]);
-                                updateCount();
-                            },
-                        );
-                    };
+                    let level = skillLevel(child, id);
+                    const button = el("button", {
+                        type: "button",
+                        className: `tap chip${level === "unknown" ? "" : " selected"}`,
+                        textContent: S.levels[level],
+                        onclick: () => {
+                            level = SKILL_LEVELS[(SKILL_LEVELS.indexOf(level) + 1) % SKILL_LEVELS.length];
+                            setSkillLevel(child, id, level);
+                            button.textContent = S.levels[level];
+                            button.className = `tap chip${level === "unknown" ? "" : " selected"}`;
+                            button.setAttribute("aria-label", `${S.skills[id]}: ${S.levels[level]}`);
+                            updateCount();
+                        },
+                    });
+                    button.setAttribute("aria-label", `${S.skills[id]}: ${S.levels[level]}`);
                     return el(
-                        "label",
+                        "div",
                         {className: "skill"},
                         el("span", {textContent: S.skills[id]}),
-                        select,
+                        button,
                     );
                 }),
             );
