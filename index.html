@@ -61,14 +61,19 @@
 
         <div id="today-activity" class="col gap-20 hidden">
             <article id="today-body" class="activity"></article>
-            <button id="today-details" class="help small left" data-i18n="moreDetails"></button>
-            <div class="today-actions">
-                <p id="today-status" class="small accent"></p>
-                <div class="row gap-10">
-                    <button id="today-main" class="tap selected grow"></button>
-                    <button id="today-another" class="tap grow" data-i18n="another"></button>
-                </div>
-            </div>
+            <p id="today-status" class="small accent"></p>
+            <button id="today-finish" class="tap selected" type="button"
+                    data-i18n-aria-label="finish">
+                <svg class="tool">
+                    <use href="sprite.svg#ok"></use>
+                </svg>
+            </button>
+            <button id="today-another" class="tap" type="button"
+                    data-i18n-aria-label="another">
+                <svg class="tool">
+                    <use href="sprite.svg#refresh"></use>
+                </svg>
+            </button>
         </div>
     </div>
 </section>

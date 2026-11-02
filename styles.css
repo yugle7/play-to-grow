@@ -694,23 +694,31 @@ nav .active > svg {
     stroke: none;
 }
 
-.today-actions {
-    position: sticky;
-    bottom: var(--nav-height);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px 0 4px;
+#today-finish,
+#today-another {
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#today-another {
+    right: max(10px, env(safe-area-inset-right));
     background: var(--bg);
-    box-shadow: 0 -14px 14px var(--bg);
 }
 
-.today-actions .row {
-    flex-wrap: wrap;
+#today-finish {
+    right: calc(max(10px, env(safe-area-inset-right)) + 62px);
 }
 
-.today-actions button {
-    flex: 1 1 auto;
+#today-finish svg {
+    stroke: var(--bg);
+}
+
+#today-another svg {
+    stroke: var(--accent);
 }
 
 /* Activity content */
@@ -1129,11 +1137,6 @@ nav .active > svg {
    ========================================================================== */
 
 @media (max-width: 360px) {
-    .today-actions button {
-        padding: 0 10px;
-        font-size: 16px;
-    }
-
     .filters {
         flex-direction: column;
         align-items: stretch;

@@ -171,8 +171,6 @@ const STRINGS = {
         noActivityForAge: (max) => `Сейчас в каталоге есть занятия для детей до ${max} мес.`,
         browseCatalogue: "Открыть каталог",
         changeConditions: "Изменить условия",
-        moreDetails: "Подробнее о занятии",
-        start: "Начать",
         finish: "Завершить",
         another: "Другое занятие",
         oneMore: "Ещё одно занятие",
@@ -582,9 +580,8 @@ const todayEmpty = $("today-empty");
 const todayEmptyText = $("today-empty-text");
 const todayActivity = $("today-activity");
 const todayBody = $("today-body");
-const todayDetails = $("today-details");
 const todayStatus = $("today-status");
-const todayMain = $("today-main");
+const todayFinish = $("today-finish");
 const todayAnother = $("today-another");
 const openCatalogue = $("open-catalogue");
 const changeConditions = $("change-conditions");
@@ -1287,24 +1284,17 @@ const renderToday = () => {
     todayBody.replaceChildren(...activityContent(findActivity(todayRec.activityId), false));
     todayStatus.textContent = resultText(todayRec);
     todayStatus.classList.toggle("hidden", status === "recommended");
-    todayMain.textContent = status === "in_progress" ? S.finish : S.start;
-    todayMain.classList.toggle("hidden", finished);
-    todayAnother.textContent = finished ? S.oneMore : S.another;
+    todayFinish.classList.toggle("hidden", finished);
+    todayAnother.setAttribute("aria-label", finished ? S.oneMore : S.another);
 };
 
-todayMain.onclick = () => {
-    if (todayRec.status === "in_progress") return openFeedback();
-    updateData(() => setStatus(todayRec, "in_progress"));
-    renderToday();
-};
+todayFinish.onclick = () => openFeedback();
 
 todayAnother.onclick = () => {
     if (!replaceRecommendation(activeChild(), todayRec)) showMessage(S.noAlternative);
     renderToday();
     window.scrollTo(0, 0);
 };
-
-todayDetails.onclick = () => openActivity(findActivity(todayRec.activityId));
 
 openCatalogue.onclick = () => renderPage("activities");
 changeConditions.onclick = () => renderPage("child");
