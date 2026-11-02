@@ -186,7 +186,6 @@ const STRINGS = {
         },
 
         /* --- Feedback --- */
-        feedbackTitle: "Как прошло занятие?",
         feedbackStatus: "Результат",
         feedbackInterest: "Интерес ребенка",
         feedbackDifficulty: "Сложность",
@@ -615,12 +614,16 @@ const conditionMaterials = $("condition-materials");
 
 /* --- Feedback --- */
 const feedbackSheet = $("feedback-sheet");
+const feedbackTitle = $("feedback-title");
 const feedbackSave = $("feedback-save");
 const feedbackCancel = $("feedback-cancel");
 const fbStatus = $("fb-status");
+const fbStatusValue = $("fb-status-value");
 const fbObserved = $("fb-observed");
 const fbInterest = $("fb-interest");
+const fbInterestValue = $("fb-interest-value");
 const fbDifficulty = $("fb-difficulty");
+const fbDifficultyValue = $("fb-difficulty-value");
 const fbReasonField = $("fb-reason-field");
 const fbReason = $("fb-reason");
 const fbComment = $("fb-comment");
@@ -1323,21 +1326,39 @@ changeConditions.onclick = () => renderPage("child");
 
 /* --- Feedback form --- */
 
+const renderRating = (input, output, key, values, labels) => {
+    const index = Math.max(0, values.indexOf(draft[key]));
+    input.value = index;
+    input.style.setProperty("--value", `${(index / (values.length - 1)) * 100}%`);
+    output.textContent = labels[draft[key]];
+};
+
 const renderFeedbackForm = () => {
-    const pick = (key) => (value) => {
-        draft[key] = value;
+    renderRating(fbStatus, fbStatusValue, "status", FEEDBACK_STATUSES, S.feedbackStatuses);
+    renderRating(fbInterest, fbInterestValue, "interest", FEEDBACK_INTERESTS, S.interestFeedback);
+    renderRating(fbDifficulty, fbDifficultyValue, "difficulty", FEEDBACK_DIFFICULTIES, S.difficultyFeedback);
+    renderChoices(fbReason, REASONS, S.reasons, (v) => v === draft.reason, (value) => {
+        draft.reason = value;
         renderFeedbackForm();
-    };
-    renderChoices(fbStatus, FEEDBACK_STATUSES, S.feedbackStatuses, (v) => v === draft.status, pick("status"));
-    renderChoices(fbInterest, FEEDBACK_INTERESTS, S.interestFeedback, (v) => v === draft.interest, pick("interest"));
-    renderChoices(fbDifficulty, FEEDBACK_DIFFICULTIES, S.difficultyFeedback, (v) => v === draft.difficulty, pick("difficulty"));
-    renderChoices(fbReason, REASONS, S.reasons, (v) => v === draft.reason, pick("reason"));
+    });
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
 };
 
+const bindRating = (input, values, key) => {
+    input.addEventListener("input", () => {
+        draft[key] = values[+input.value];
+        renderFeedbackForm();
+    });
+};
+
+bindRating(fbStatus, FEEDBACK_STATUSES, "status");
+bindRating(fbInterest, FEEDBACK_INTERESTS, "interest");
+bindRating(fbDifficulty, FEEDBACK_DIFFICULTIES, "difficulty");
+
 const openFeedback = () => {
     draft = {status: "completed", interest: "not_observed", difficulty: "not_observed", reason: null};
+    feedbackTitle.textContent = findActivity(todayRec.activityId)?.title ?? S.unknownActivity;
     fbComment.value = "";
     renderFeedbackForm();
     openSheet(feedbackSheet);

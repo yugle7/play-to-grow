@@ -321,10 +321,10 @@
     </button>
 </div>
 
-<div id="feedback-sheet" class="sheet" role="dialog" aria-modal="true">
-    <div class="row between">
-        <h3 data-i18n="feedbackTitle"></h3>
-        <button type="button" class="icon-button close" data-i18n-aria-label="close">
+<div id="feedback-sheet" class="sheet full" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+    <div class="row between gap-10">
+        <h3 id="feedback-title"></h3>
+        <button id="feedback-cancel" class="fab-close" type="button" data-i18n-aria-label="cancel">
             <svg class="tool">
                 <use href="sprite.svg#close"></use>
             </svg>
@@ -332,17 +332,26 @@
     </div>
     <div class="sheet-scroll col gap-20">
         <div class="field">
-            <span class="label" data-i18n="feedbackStatus"></span>
-            <div id="fb-status" class="chips" role="group" data-i18n-aria-label="feedbackStatus"></div>
+            <label class="row gap-10" for="fb-status">
+                <span data-i18n="feedbackStatus"></span> <span>—</span>
+                <span id="fb-status-value"></span>
+            </label>
+            <input type="range" id="fb-status" min="0" max="3" step="1" value="0">
         </div>
         <div id="fb-observed" class="col gap-20">
             <div class="field">
-                <span class="label" data-i18n="feedbackInterest"></span>
-                <div id="fb-interest" class="chips" role="group" data-i18n-aria-label="feedbackInterest"></div>
+                <label class="row gap-10" for="fb-interest">
+                    <span data-i18n="feedbackInterest"></span> <span>—</span>
+                    <span id="fb-interest-value"></span>
+                </label>
+                <input type="range" id="fb-interest" min="0" max="3" step="1" value="3">
             </div>
             <div class="field">
-                <span class="label" data-i18n="feedbackDifficulty"></span>
-                <div id="fb-difficulty" class="chips" role="group" data-i18n-aria-label="feedbackDifficulty"></div>
+                <label class="row gap-10" for="fb-difficulty">
+                    <span data-i18n="feedbackDifficulty"></span> <span>—</span>
+                    <span id="fb-difficulty-value"></span>
+                </label>
+                <input type="range" id="fb-difficulty" min="0" max="3" step="1" value="3">
             </div>
         </div>
         <div id="fb-reason-field" class="field">
@@ -355,10 +364,11 @@
                       data-i18n-placeholder="commentPlaceholder"></textarea>
         </label>
     </div>
-    <footer>
-        <button id="feedback-cancel" class="right" data-i18n="cancel"></button>
-        <button id="feedback-save" class="accent" data-i18n="save"></button>
-    </footer>
+    <button id="feedback-save" class="fab-round" type="button" data-i18n-aria-label="save">
+        <svg class="tool">
+            <use href="sprite.svg#ok"></use>
+        </svg>
+    </button>
 </div>
 
 <div id="options-sheet" class="sheet center small" role="dialog" aria-modal="true" aria-labelledby="options-title">

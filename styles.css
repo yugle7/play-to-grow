@@ -397,6 +397,50 @@ button svg.tool,
     border-radius: 50%;
 }
 
+.fab-round {
+    position: fixed;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 2;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(128, 128, 128, 0.55);
+    color: var(--bg);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.fab-round svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--bg);
+    stroke-width: 3;
+}
+
+.fab-round:disabled {
+    opacity: 0.35;
+    box-shadow: none;
+}
+
+.fab-close {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.fab-close svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 3;
+    stroke: var(--help);
+}
+
 /* Pill buttons */
 .tap {
     padding: 0 12px;
@@ -1073,6 +1117,24 @@ nav .active > svg {
     z-index: 2;
 }
 
+#feedback-sheet {
+    max-width: none;
+}
+
+#feedback-sheet > .row h3 {
+    min-width: 0;
+    padding-right: 58px;
+    overflow-wrap: anywhere;
+}
+
+#feedback-sheet .field > label.row {
+    flex-wrap: wrap;
+}
+
+#feedback-sheet .sheet-scroll {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}
+
 .sheet-scroll {
     flex: 1;
     min-height: 0;
@@ -1081,23 +1143,6 @@ nav .active > svg {
 
 .sheet-scroll > * {
     flex: none;
-}
-
-.sheet footer {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.sheet footer button {
-    padding: 14px 20px 18px;
-    background: transparent;
-    font-size: 16px;
-    line-height: 1.2;
-}
-
-.sheet footer button:disabled {
-    opacity: 0.4;
 }
 
 /* Option picker */
