@@ -92,26 +92,23 @@
             </button>
         </div>
         <div id="filter-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
-        <div class="row gap-10 filters">
-            <label class="field">
-                <span class="label" data-i18n="filterAge"></span>
-                <button id="filter-age" class="input select" type="button" aria-haspopup="dialog">
-                    <span class="select-value"></span>
-                </button>
-            </label>
-            <label class="field">
-                <span class="label" data-i18n="filterDuration"></span>
-                <button id="filter-duration" class="input select" type="button" aria-haspopup="dialog">
-                    <span class="select-value"></span>
-                </button>
-            </label>
-        </div>
-        <label class="field">
-            <span class="label" data-i18n="filterInterest"></span>
-            <button id="filter-interest" class="input select" type="button" aria-haspopup="dialog">
+        <div class="field">
+            <span class="label" data-i18n="filterAge"></span>
+            <button id="filter-age" class="input select" type="button" aria-haspopup="dialog">
                 <span class="select-value"></span>
             </button>
-        </label>
+        </div>
+        <div class="field">
+            <label class="row gap-10" for="filter-duration">
+                <span data-i18n="filterDuration"></span> <span>—</span>
+                <span id="filter-duration-value"></span>
+            </label>
+            <input type="range" id="filter-duration" min="0" max="15" step="5" value="0">
+        </div>
+        <div class="field">
+            <span class="label" data-i18n="filterInterest"></span>
+            <div id="filter-interest" class="chips" role="group" data-i18n-aria-label="filterInterest"></div>
+        </div>
         <p id="catalogue-status" class="help small"></p>
     </div>
     <ul id="activity-list" class="list"></ul>

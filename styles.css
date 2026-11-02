@@ -155,6 +155,60 @@ input {
     padding: 10px;
 }
 
+/* Range slider */
+input[type=range] {
+    width: 100%;
+    height: 32px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(
+            to right,
+            var(--accent) 0%,
+            var(--accent) var(--value, 50%),
+            var(--line) var(--value, 50%),
+            var(--line) 100%
+    );
+}
+
+input[type=range]::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: transform 120ms ease;
+}
+
+input[type=range]:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+}
+
+input[type=range]::-moz-range-track {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--bg);
+}
+
+input[type=range]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 120ms ease;
+}
+
 input,
 textarea {
     width: fit-content;
@@ -863,6 +917,17 @@ nav .active > svg {
     border-bottom-color: var(--accent);
 }
 
+.filter-option {
+    min-height: 38px;
+    padding: 8px 4px;
+    color: var(--help);
+    font-size: 16px;
+}
+
+.filter-option.selected {
+    color: var(--accent);
+}
+
 #activity-list,
 #history-list {
     margin-top: 4px;
@@ -1151,11 +1216,6 @@ nav .active > svg {
    ========================================================================== */
 
 @media (max-width: 360px) {
-    .filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
     .skill {
         grid-template-columns: minmax(0, 1fr) 128px;
     }

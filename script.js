@@ -266,7 +266,6 @@ const STRINGS = {
         allAreas: "Все области",
         anyAge: "Любой",
         anyDuration: "Любое время",
-        allInterests: "Все интересы",
         filterArea: "Область развития",
         filterAge: "Возраст",
         filterDuration: "Длительность",
@@ -373,7 +372,7 @@ const STRINGS = {
             unknown: "Не замечали",
             emerging: "Появляется",
             developing: "Иногда",
-            confident: "Уверенно",
+            g: "Уверенно",
         },
         interests: {
             music: "Музыка",
@@ -426,7 +425,7 @@ let historyAreaFilter = "";
 let activityArea = "";
 let ageFilter = "";
 let durationFilter = "0";
-let interestFilter = "";
+let interestFilters = [];
 let draft = null;
 
 let childFormNew = false;
@@ -632,6 +631,7 @@ const searchClear = $("search-clear");
 const filterAreaChips = $("filter-area");
 const filterAge = $("filter-age");
 const filterDuration = $("filter-duration");
+const filterDurationValue = $("filter-duration-value");
 const filterInterest = $("filter-interest");
 const catalogueStatus = $("catalogue-status");
 const activityList = $("activity-list");
@@ -763,14 +763,14 @@ const replaceButtons = (container, buttons) => {
     container.children[focused]?.focus();
 };
 
-// Chips for single or multiple choice
-const renderChoices = (container, options, labels, isSelected, onSelect) =>
+// Buttons for single or multiple choice
+const renderChoices = (container, options, labels, isSelected, onSelect, className = "tap chip") =>
     replaceButtons(
         container,
         options.map((option) => {
             const button = el("button", {
                 type: "button",
-                className: isSelected(option) ? "tap chip selected" : "tap chip",
+                className: isSelected(option) ? `${className} selected` : className,
                 textContent: labels[option],
                 onclick: () => onSelect(option),
             });
@@ -1454,13 +1454,17 @@ const durationOptions = () =>
         label: value ? S.durationLimits[value] : S.anyDuration,
     }));
 
-const interestOptions = () => [
-    {value: "", label: S.allInterests},
-    ...INTERESTS.map((tag) => ({value: tag, label: S.interests[tag]})),
-];
-
 const selectedLabel = (options, value) =>
     options.find((option) => option.value === value)?.label ?? options[0].label;
+
+const renderDurationFilter = () => {
+    filterDuration.value = durationFilter;
+    filterDurationValue.textContent = selectedLabel(durationOptions(), durationFilter);
+    filterDuration.style.setProperty(
+        "--value",
+        `${(Number(durationFilter) / DURATION_LIMITS[DURATION_LIMITS.length - 1]) * 100}%`,
+    );
+};
 
 const ageFilterRange = (child) => {
     if (ageFilter !== "child") return ageFilter && ageFilter.split("-").map(Number);
@@ -1491,8 +1495,21 @@ const renderActivities = () => {
     if (!child && ageFilter === "child") ageFilter = "";
 
     setSelectValue(filterAge, selectedLabel(ageOptions(), ageFilter));
-    setSelectValue(filterDuration, selectedLabel(durationOptions(), durationFilter));
-    setSelectValue(filterInterest, selectedLabel(interestOptions(), interestFilter));
+    renderDurationFilter();
+
+    renderChoices(
+        filterInterest,
+        INTERESTS,
+        S.interests,
+        (tag) => interestFilters.includes(tag),
+        (tag) => {
+            interestFilters = interestFilters.includes(tag)
+                ? interestFilters.filter((value) => value !== tag)
+                : [...interestFilters, tag];
+            renderActivities();
+        },
+        "filter-option",
+    );
 
     renderAreaChoices(filterAreaChips, activityArea, (area) => {
         activityArea = area;
@@ -1508,7 +1525,8 @@ const renderActivities = () => {
             (!activityArea || a.areas.includes(activityArea)) &&
             (!range || (a.ageMinMonths <= range[1] && a.ageMaxMonths >= range[0])) &&
             (!duration || a.duration <= duration) &&
-            (!interestFilter || a.interestTags.includes(interestFilter)),
+            (!interestFilters.length ||
+                interestFilters.some((tag) => a.interestTags.includes(tag))),
     );
     activityList.replaceChildren(...list.map(activityItem));
     activityEmpty.classList.toggle("hidden", list.length > 0 || catalogueError);
@@ -1539,19 +1557,10 @@ filterAge.onclick = () => {
     });
 };
 
-filterDuration.onclick = () => {
-    openOptions(S.filterDuration, durationOptions(), durationFilter, (value) => {
-        durationFilter = value;
-        renderActivities();
-    });
-};
-
-filterInterest.onclick = () => {
-    openOptions(S.filterInterest, interestOptions(), interestFilter, (value) => {
-        interestFilter = value;
-        renderActivities();
-    });
-};
+filterDuration.addEventListener("input", () => {
+    durationFilter = filterDuration.value;
+    renderActivities();
+});
 
 // ==========================================================================
 // 17. CHILD
