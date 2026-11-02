@@ -280,7 +280,6 @@ h3 {
 
 .empty {
     padding: 24px 20px;
-    text-align: center;
     color: var(--help);
     font-size: 14px;
 }
@@ -859,10 +858,6 @@ nav .active > svg {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px 10px;
-}
-
-#child-save:disabled {
-    opacity: 0.4;
 }
 
 .skill {

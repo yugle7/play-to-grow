@@ -644,7 +644,6 @@ const childNameInput = $("child-name-input");
 const childBirthInput = $("child-birth-input");
 const childDueInput = $("child-due-input");
 const childGender = $("child-gender");
-const childSave = $("child-save");
 const childCancel = $("child-cancel");
 
 /* --- Overlay and modal --- */
@@ -1641,7 +1640,6 @@ const renderChild = () => {
     formGender = formChild?.gender ?? "unspecified";
     setSegment(childGender, formGender, "gender");
     childCancel.classList.toggle("hidden", !childFormNew);
-    updateChildSave();
 
     childDetails.classList.toggle("hidden", childFormNew);
     if (!child || childFormNew) return;
@@ -1668,7 +1666,7 @@ childDelete.onclick = () => {
 const YY = new Date().getFullYear() % 100;
 
 // Masked DD.MM.YYYY input shared by the birth and due date fields.
-const createDateInput = (input, onChange, allowFuture = false) => {
+const createDateInput = (input, allowFuture = false) => {
     const value = {digits: "", cursor: 0};
 
     const text = () => {
@@ -1719,7 +1717,6 @@ const createDateInput = (input, onChange, allowFuture = false) => {
         if (value.cursor >= 4) p++;
         p = Math.min(p, input.value.length);
         input.setSelectionRange(p, p);
-        onChange();
     };
 
     const position = (p) => input.value.slice(0, p).replace(/\D/g, "").length;
@@ -1851,15 +1848,12 @@ const createDateInput = (input, onChange, allowFuture = false) => {
     return {set, get};
 };
 
-const birthdate = createDateInput(childBirthInput, () => updateChildSave());
-const duedate = createDateInput(childDueInput, () => updateChildSave(), true);
+const birthdate = createDateInput(childBirthInput);
+const duedate = createDateInput(childDueInput, true);
 
-const updateChildSave = () => {
+const childFormReady = () => {
     const due = duedate.get();
-    childSave.disabled =
-        !childNameInput.value.trim() ||
-        !birthdate.get() ||
-        (!!childDueInput.value && !due);
+    return !!childNameInput.value.trim() && !!birthdate.get() && (!childDueInput.value || !!due);
 };
 
 const openChildForm = () => {
@@ -1874,7 +1868,7 @@ const cancelChildForm = () => {
 };
 
 const saveChild = () => {
-    if (childSave.disabled) return;
+    if (!childFormReady()) return;
     const fields = {
         name: childNameInput.value.trim(),
         birthDate: birthdate.get(),
@@ -1884,16 +1878,27 @@ const saveChild = () => {
     if (childFormNew) {
         createChild(fields);
         childFormNew = false;
+        render();
     } else {
         editChild(activeChild(), fields);
+        childNameInput.value = fields.name;
+        renderHeader();
     }
-    render();
 };
 
-childSave.onclick = saveChild;
+const saveChildOnBlur = (event) => {
+    if (event.relatedTarget?.closest?.("#child-cancel")) return;
+    saveChild();
+};
+
 childCancel.onclick = cancelChildForm;
-childNameInput.oninput = updateChildSave;
-onSegment(childGender, "gender", (value) => (formGender = value));
+childNameInput.addEventListener("blur", saveChildOnBlur);
+childBirthInput.addEventListener("blur", saveChildOnBlur);
+childDueInput.addEventListener("blur", saveChildOnBlur);
+onSegment(childGender, "gender", (value) => {
+    formGender = value;
+    saveChild();
+});
 
 document.querySelectorAll(".add-child").forEach((button) => {
     button.onclick = () => openChildForm();
