@@ -21,12 +21,17 @@
 
 <header id="top" class="width-500 hidden">
     <div class="row gap-10 pad-20">
-        <button id="header-add-child" class="tap add-child hidden" type="button" data-i18n="addChild"></button>
         <button id="child-select" class="select" type="button" aria-haspopup="dialog"
                 data-i18n-aria-label="selectChild">
             <span class="select-value"></span>
         </button>
         <span id="child-age" class="help small"></span>
+        <button id="plus" class="icon-button add-child hidden right" type="button"
+                data-i18n-aria-label="addChild">
+            <svg class="tool">
+                <use href="sprite.svg#plus"></use>
+            </svg>
+        </button>
     </div>
 </header>
 
@@ -148,7 +153,6 @@
 
     <div id="child-none" class="pad-20 col gap-20">
         <p data-i18n="noChildText"></p>
-        <button class="tap add-child" data-i18n="addChild"></button>
     </div>
 
     <div id="child-profile" class="col gap-30">
@@ -216,7 +220,6 @@
             </section>
 
             <section class="pad-20 col gap-10">
-                <button class="tap add-child" data-i18n="addAnotherChild"></button>
                 <button id="child-delete" class="red" data-i18n="deleteChild"></button>
             </section>
         </div>

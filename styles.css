@@ -783,6 +783,11 @@ nav .active > svg {
 
 #top {
     padding-top: 8px;
+    cursor: pointer;
+}
+
+#plus svg {
+    stroke: var(--accent);
 }
 
 #child-select {

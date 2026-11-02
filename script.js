@@ -223,7 +223,6 @@ const STRINGS = {
         selectChild: "Выбрать ребенка",
         noChildText: "Пока нет ни одного профиля.",
         addChild: "Добавить ребенка",
-        addAnotherChild: "Добавить еще ребенка",
         newChild: "Новый ребенок",
         profileTitle: "Профиль",
         age: "Возраст",
@@ -572,9 +571,9 @@ const navBar = $("nav-bar");
 const navButtons = [...nav.querySelectorAll("button")];
 
 const header = $("top");
-const headerAddChild = $("header-add-child");
 const childSelect = $("child-select");
 const childAge = $("child-age");
+const plus = $("plus");
 
 /* --- Today --- */
 const todayDate = $("today-date");
@@ -1256,12 +1255,17 @@ const renderHeader = () => {
     }
     const child = activeChild();
     header.classList.remove("hidden");
-    headerAddChild.classList.toggle("hidden", !!child);
+    plus.classList.toggle("hidden", currentPage !== "child");
     childSelect.classList.toggle("hidden", !child);
     childAge.classList.toggle("hidden", !child);
     if (!child) return;
     setSelectValue(childSelect, child.name);
     childAge.textContent = formatAge(child.birthDate);
+};
+
+header.onclick = (event) => {
+    if (event.target.closest("button, a, input, textarea, select")) return;
+    if (currentPage !== "child") renderPage("child");
 };
 
 childSelect.onclick = () => {
