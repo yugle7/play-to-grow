@@ -464,15 +464,15 @@ button svg.tool,
     font-size: inherit;
 }
 
-.select::after {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-right: 2px solid var(--help);
-    border-bottom: 2px solid var(--help);
-    transform: rotate(45deg) translateY(-2px);
-    flex: none;
-}
+/*.select::after {*/
+/*    content: "";*/
+/*    width: 7px;*/
+/*    height: 7px;*/
+/*    border-right: 2px solid var(--help);*/
+/*    border-bottom: 2px solid var(--help);*/
+/*    transform: rotate(45deg) translateY(-2px);*/
+/*    flex: none;*/
+/*}*/
 
 .text-field {
     position: relative;
