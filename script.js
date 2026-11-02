@@ -434,6 +434,8 @@ let formGender = "unspecified";
 
 let openedSheet = null;
 let onModalYes = null;
+let scrollLocked = false;
+let lockedScrollY = 0;
 
 // ==========================================================================
 // 4. HELPERS
@@ -817,11 +819,27 @@ const onSegment = (segment, attr, callback) => {
 
 /* --- Sheets and modal --- */
 
+const updateScrollLock = () => {
+    const shouldLock = !!openedSheet || !modal.hidden;
+    if (shouldLock === scrollLocked) return;
+    scrollLocked = shouldLock;
+    if (shouldLock) {
+        lockedScrollY = window.scrollY;
+        document.body.style.top = `-${lockedScrollY}px`;
+        document.documentElement.classList.add("scroll-locked");
+    } else {
+        document.documentElement.classList.remove("scroll-locked");
+        document.body.style.top = "";
+        window.scrollTo(0, lockedScrollY);
+    }
+};
+
 const openSheet = (sheet) => {
     closeSheet();
     openedSheet = sheet;
     overlay.classList.add("open");
     openedSheet.classList.add("open");
+    updateScrollLock();
 };
 
 const closeSheet = () => {
@@ -829,6 +847,7 @@ const closeSheet = () => {
     openedSheet.classList.remove("open");
     overlay.classList.remove("open");
     openedSheet = null;
+    updateScrollLock();
 };
 
 overlay.onclick = closeSheet;
@@ -850,7 +869,8 @@ const openOptions = (title, options, selected, onSelect, showAddChild = false) =
                         if (!current) onSelect(value);
                     },
                 },
-                el("span", {textContent: label}),
+                label,
+                // el("span", {textContent: label}),
                 current && icon("check", "option-check"),
             );
             option.setAttribute("aria-pressed", String(current));
@@ -867,6 +887,8 @@ const showModal = (text, onYes = null, yesLabel = null) => {
     modalYes.textContent = yesLabel || (onYes ? S.yes : "OK");
     modalNo.classList.toggle("hidden", !onYes);
     modal.hidden = false;
+    modal.querySelector(".dialog").scrollTop = 0;
+    updateScrollLock();
 };
 
 const showMessage = (text) => showModal(text);
@@ -874,6 +896,7 @@ const showMessage = (text) => showModal(text);
 const closeModal = () => {
     modal.hidden = true;
     onModalYes = null;
+    updateScrollLock();
 };
 
 modalYes.onclick = () => {
