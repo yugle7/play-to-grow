@@ -682,11 +682,15 @@ details[open] summary .minus {
 .facts {
     display: flex;
     flex-direction: column;
-    gap: 10px;
 }
 
 .facts dt {
     color: var(--help);
+    font-size: 14px;
+}
+
+.facts dd {
+    padding-bottom: 10px;
 }
 
 /* Development areas */
@@ -1089,7 +1093,6 @@ nav .active > svg {
 }
 
 #feedback-form {
-    border-top: 1px solid var(--line);
     padding-top: 20px;
 }
 
