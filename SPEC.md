@@ -173,11 +173,12 @@ The middle navigation item opens the full-screen Activity page.
 
 The page starts with an activity name input.
 
+- The recommended activity is shown in the description but its name is not inserted automatically into the name field.
 - Typing searches normalized activity titles.
 - Up to five matching available activities are suggested.
 - Suggestions only include activities with `enabled === true` and `safetyReviewed === true`.
 - A clear button empties the name input and suggestions and returns focus to the input.
-- Selecting a suggestion selects that activity for the current child and renders its description.
+- Selecting a suggestion selects that activity for the current child, renders its description and clears the name input.
 - Selecting a different activity for today marks the current pending recommendation as `replaced` when necessary, then creates or reuses a recommendation for the selected activity.
 
 ### 6.3 Action buttons

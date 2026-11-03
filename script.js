@@ -1641,7 +1641,6 @@ const renderActivity = () => {
     }
 
     if (todayRec.id !== draftRecId) resetFeedback(activity);
-    if (activityName.value !== activity.title) activityName.value = activity.title;
     activityNameClear.classList.toggle("hidden", !activityName.value);
     activityNoResult.classList.add("hidden");
     activityBody.replaceChildren(...activityContent(activity, true));
@@ -1664,6 +1663,8 @@ const chooseActivity = (activity) => {
             todayRec = addRecommendation(child.id, dateKey(), activity);
         });
     }
+    activityName.value = "";
+    activityNameClear.classList.add("hidden");
     renderPage("activity");
 };
 
