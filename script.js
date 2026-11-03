@@ -625,6 +625,7 @@ const dayEntries = $("day-entries");
 const activityWelcome = $("activity-welcome");
 const activityMain = $("activity-main");
 const activityName = $("activity-name");
+const activityNameClear = $("activity-name-clear");
 const activitySuggestions = $("activity-suggestions");
 const activitySearch = $("activity-search");
 const activityAdd = $("activity-add");
@@ -1629,6 +1630,7 @@ const renderActivity = () => {
         todayRec = null;
         draftRecId = null;
         activityName.value = "";
+        activityNameClear.classList.add("hidden");
         activityBody.replaceChildren();
         activityStatus.classList.add("hidden");
         activityNoResult.textContent = catalogueError ? S.catalogueError : emptyReason(child);
@@ -1640,6 +1642,7 @@ const renderActivity = () => {
 
     if (todayRec.id !== draftRecId) resetFeedback(activity);
     if (activityName.value !== activity.title) activityName.value = activity.title;
+    activityNameClear.classList.toggle("hidden", !activityName.value);
     activityNoResult.classList.add("hidden");
     activityBody.replaceChildren(...activityContent(activity, true));
     const feedback = feedbackFor(todayRec.id);
@@ -1689,8 +1692,18 @@ const renderActivitySuggestions = () => {
 
 activityName.addEventListener(
     "input",
-    debounce(renderActivitySuggestions, 120),
+    debounce(() => {
+        activityNameClear.classList.toggle("hidden", !activityName.value);
+        renderActivitySuggestions();
+    }, 120),
 );
+
+activityNameClear.onclick = () => {
+    activityName.value = "";
+    activityNameClear.classList.add("hidden");
+    activitySuggestions.replaceChildren();
+    activityName.focus();
+};
 
 activitySearch.onclick = () => {
     renderPage("search");

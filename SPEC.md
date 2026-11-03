@@ -176,6 +176,7 @@ The page starts with an activity name input.
 - Typing searches normalized activity titles.
 - Up to five matching available activities are suggested.
 - Suggestions only include activities with `enabled === true` and `safetyReviewed === true`.
+- A clear button empties the name input and suggestions and returns focus to the input.
 - Selecting a suggestion selects that activity for the current child and renders its description.
 - Selecting a different activity for today marks the current pending recommendation as `replaced` when necessary, then creates or reuses a recommendation for the selected activity.
 
