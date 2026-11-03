@@ -44,12 +44,15 @@
     <div id="today-scroll" class="scroll">
         <div class="width-500 col gap-20 pad-20 cta-space">
             <div class="row gap-10 today-header">
-                <button id="today-back" class="fab-close" type="button" data-i18n-aria-label="back">
+                <p id="today-child" class="row gap-10">
+                    <span id="today-child-name"></span>
+                    <span id="today-child-age" class="help small"></span>
+                </p>
+                <button id="today-back" class="fab-close" type="button" data-i18n-aria-label="close">
                     <svg class="tool">
-                        <use href="sprite.svg#prev"></use>
+                        <use href="sprite.svg#close"></use>
                     </svg>
                 </button>
-                <p id="today-date" class="help small"></p>
             </div>
 
         <div id="welcome" class="col gap-20 hidden">
@@ -71,12 +74,6 @@
         <div id="today-activity" class="col gap-20 hidden">
             <article id="today-body" class="activity"></article>
             <p id="today-status" class="small accent"></p>
-            <button id="today-finish" class="fab-round" type="button"
-                    data-i18n-aria-label="finish">
-                <svg class="tool">
-                    <use href="sprite.svg#ok"></use>
-                </svg>
-            </button>
             <button id="today-another" class="fab-close" type="button"
                     data-i18n-aria-label="another">
                 <svg class="tool">
@@ -85,14 +82,14 @@
             </button>
             </div>
 
-            <section id="feedback-form" class="col gap-20 hidden">
+            <section id="feedback-form" class="col gap-20">
                 <h3 data-i18n="feedbackTitle"></h3>
                 <div class="field">
                     <label class="row gap-10" for="fb-status">
                         <span data-i18n="feedbackStatus"></span> <span>—</span>
                         <span id="fb-status-value"></span>
                     </label>
-                    <input type="range" id="fb-status" min="0" max="3" step="1" value="0">
+                    <input type="range" id="fb-status" min="0" max="3" step="1" value="3">
                 </div>
                 <div id="fb-observed" class="col gap-20">
                     <div class="field">
@@ -119,12 +116,7 @@
                     <textarea id="fb-comment" class="input" rows="2" maxlength="300"
                               data-i18n-placeholder="commentPlaceholder"></textarea>
                 </label>
-                <button id="feedback-cancel" class="fab-close" type="button" data-i18n-aria-label="cancel">
-                    <svg class="tool">
-                        <use href="sprite.svg#close"></use>
-                    </svg>
-                </button>
-                <button id="feedback-save" class="fab-round" type="button" data-i18n-aria-label="save">
+                <button id="feedback-save" class="fab-round hidden" type="button" data-i18n-aria-label="save">
                     <svg class="tool">
                         <use href="sprite.svg#ok"></use>
                     </svg>
@@ -338,12 +330,12 @@
     <div id="nav">
         <button id="active" data-page="activities" class="active" data-i18n-aria-label="activities" aria-current="page">
             <svg>
-                <use href="sprite.svg#activities"></use>
+                <use href="sprite.svg#search"></use>
             </svg>
         </button>
         <button id="today" data-i18n-aria-label="today">
             <svg>
-                <use href="sprite.svg#today"></use>
+                <use href="sprite.svg#plus"></use>
             </svg>
         </button>
         <button data-page="history" data-i18n-aria-label="history">

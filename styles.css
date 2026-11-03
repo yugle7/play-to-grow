@@ -803,8 +803,20 @@ nav .active > svg {
     white-space: nowrap;
 }
 
-#today-date {
-    min-height: 21px;
+#today-child {
+    min-width: 0;
+}
+
+#today-child-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 20px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#today-child-age {
+    white-space: nowrap;
 }
 
 .hero-blocks {
@@ -832,13 +844,13 @@ nav .active > svg {
 }
 
 .today-header {
-    padding-left: 58px;
     padding-right: 58px;
 }
 
-#today-back {
-    right: auto;
-    left: 8px;
+#today-another {
+    top: auto;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
 }
 
 /* Activity content */

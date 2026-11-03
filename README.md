@@ -32,7 +32,7 @@ The app has five sections in the bottom navigation:
 
 | Section        | Description                                                                                                                                                                |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Today**      | Today's activity: goal, duration, materials, steps, safety instructions, and videos. Finish and Another Activity icon buttons.                                  |
+| **Today**      | Today's activity: goal, duration, materials, steps, safety instructions, videos, and feedback form. Close and conditional Save/Another Activity buttons. |
 | **Activities** | The full catalogue, with search by title and filters by developmental area, age, duration, and interest. Tap an activity to open its full description.                     |
 | **History**    | Previously suggested activities and their outcomes. Filters: all, completed, skipped, and developmental area.                                                              |
 | **Child**      | Child profile: name, date of birth, estimated due date (optional), age, and gender (optional). Skills, interests, and activity conditions. Multiple children can be added. |
@@ -43,9 +43,8 @@ Typical user flow:
 1. The parent creates a child profile by entering the child's name and date of birth.
 2. Optionally, the parent adds the child's skills and interests, as well as activity preferences: available time, preferred location, and materials on hand.
 3. The Today screen displays one activity. If it is not suitable, the parent taps "Another Activity".
-4. The parent does the activity with the child and taps the finish icon.
-5. The parent provides feedback: whether the activity was successful, whether the child enjoyed it, and whether it was too difficult.
-6. Future activities are selected based on this feedback.
+4. The parent fills in the feedback form below the activity: whether the activity was successful, whether the child enjoyed it, and whether it was too difficult.
+5. Future activities are selected based on this feedback.
 
 ## Getting Started
 
@@ -426,7 +425,7 @@ You can inspect the scores of all activities in the console using `rankActivitie
 
 ## How Feedback Works
 
-Feedback logic is in section `// 12. FEEDBACK`. After tapping "Complete", a short form appears with the outcome, the child's interest, difficulty, the reason (if the activity was unsuccessful), and an optional comment.
+Feedback logic is in section `// 12. FEEDBACK`. The feedback form is always shown below the activity and contains the outcome, the child's interest, difficulty, the reason (if the activity was unsuccessful), and an optional comment. The outcome defaults to "Skipped". When it is "Skipped", the bottom-right action is "Another Activity"; otherwise it is "Save".
 
 | Response                                              | Effect                                                                                                                                |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -456,7 +455,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"32"` → `"33"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"34"` → `"35"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
@@ -537,7 +536,7 @@ There are no automated tests in the repository. Before releasing, go through thi
 - Add skills, interests, and conditions. Make sure everything is still there after reloading.
 - With two children, each child has their own daily activity, history, and interests.
 - The daily activity remains unchanged after reloading; "Another Activity" does not suggest the current activity again.
-- Tap the finish icon without any intermediate start step; the feedback form opens immediately.
+- The feedback form is always visible below the Today activity.
 - Feedback is saved and appears in History; "No time" does not change interests.
 - Catalogue search and all filters work; activity descriptions open correctly.
 - Test export, import (including rejecting an invalid file), and deleting all data.

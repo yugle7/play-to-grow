@@ -150,7 +150,6 @@ const STRINGS = {
 
         /* --- Common --- */
         save: "Сохранить",
-        back: "Назад",
         cancel: "Отмена",
         close: "Закрыть",
         delete: "Удалить",
@@ -172,7 +171,6 @@ const STRINGS = {
         noActivityForAge: (max) => `Сейчас в каталоге есть занятия для детей до ${max} мес.`,
         browseCatalogue: "Открыть каталог",
         changeConditions: "Изменить условия",
-        finish: "Завершить",
         another: "Другое занятие",
         oneMore: "Еще одно занятие",
         noAlternative: "Других подходящих занятий на сегодня нет.",
@@ -417,7 +415,6 @@ let data;
 let catalogue = [];
 let catalogueError = false;
 let todayRec = null;
-let feedbackOpen = false;
 let todayReturnPage = "activities";
 
 let currentPage = "activities";
@@ -427,7 +424,8 @@ let activityArea = "";
 let ageFilter = "";
 let durationFilter = "0";
 let interestFilters = [];
-let draft = null;
+let draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
+let draftRecId = null;
 
 let childFormNew = false;
 let formGender = "unspecified";
@@ -577,7 +575,9 @@ const childAge = $("child-age");
 const plus = $("plus");
 
 /* --- Today --- */
-const todayDate = $("today-date");
+const todayChild = $("today-child");
+const todayChildName = $("today-child-name");
+const todayChildAge = $("today-child-age");
 const todayBack = $("today-back");
 const todayScroll = $("today-scroll");
 const welcome = $("welcome");
@@ -586,7 +586,6 @@ const todayEmptyText = $("today-empty-text");
 const todayActivity = $("today-activity");
 const todayBody = $("today-body");
 const todayStatus = $("today-status");
-const todayFinish = $("today-finish");
 const todayAnother = $("today-another");
 const openCatalogue = $("open-catalogue");
 const changeConditions = $("change-conditions");
@@ -618,9 +617,7 @@ const conditionIntensity = $("condition-intensity");
 const conditionMaterials = $("condition-materials");
 
 /* --- Feedback --- */
-const feedbackForm = $("feedback-form");
 const feedbackSave = $("feedback-save");
-const feedbackCancel = $("feedback-cancel");
 const fbStatus = $("fb-status");
 const fbStatusValue = $("fb-status-value");
 const fbObserved = $("fb-observed");
@@ -918,7 +915,6 @@ document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (!modal.hidden) closeModal();
     else if (openedSheet) closeSheet();
-    else if (feedbackOpen) closeFeedback();
 });
 
 document.querySelectorAll(".sheet .close").forEach((button) => {
@@ -1290,29 +1286,31 @@ const resultText = (rec) => {
 };
 
 const renderToday = () => {
-    todayDate.textContent = capitalize(formatDate(dateKey(), {weekday: "long", day: "numeric", month: "long"}));
     const child = activeChild();
+    todayChild.classList.toggle("hidden", !child);
+    todayChildName.textContent = child?.name ?? "";
+    todayChildAge.textContent = child ? formatAge(child.birthDate) : "";
     // without the catalogue the stored recommendation cannot be checked, so it is left untouched
     todayRec = child && !catalogueError ? todayRecommendation(child) : null;
+    if ((todayRec?.id ?? null) !== draftRecId) {
+        draftRecId = todayRec?.id ?? null;
+        draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
+        fbComment.value = "";
+    }
     welcome.classList.toggle("hidden", !!child);
-    todayDate.classList.toggle("hidden", !child);
     todayEmpty.classList.toggle("hidden", !child || !!todayRec);
     todayActivity.classList.toggle("hidden", !todayRec);
     todayEmptyText.textContent = catalogueError ? S.catalogueError : emptyReason(child);
     changeConditions.classList.toggle("hidden", catalogueError);
-    if (!todayRec) return;
-
-    const {status} = todayRec;
-    const finished = FINISHED.includes(status);
-    todayBody.replaceChildren(...activityContent(findActivity(todayRec.activityId), false));
-    todayStatus.textContent = resultText(todayRec);
-    todayStatus.classList.toggle("hidden", status === "recommended");
-    todayFinish.classList.toggle("hidden", finished || feedbackOpen);
-    todayAnother.classList.toggle("hidden", feedbackOpen);
-    todayAnother.setAttribute("aria-label", finished ? S.oneMore : S.another);
+    if (todayRec) {
+        const {status} = todayRec;
+        todayBody.replaceChildren(...activityContent(findActivity(todayRec.activityId), false));
+        todayStatus.textContent = resultText(todayRec);
+        todayStatus.classList.toggle("hidden", status === "recommended");
+        todayAnother.setAttribute("aria-label", FINISHED.includes(status) ? S.oneMore : S.another);
+    }
+    renderFeedbackForm();
 };
-
-todayFinish.onclick = () => openFeedback();
 
 todayAnother.onclick = () => {
     if (!replaceRecommendation(activeChild(), todayRec)) showMessage(S.noAlternative);
@@ -1320,11 +1318,7 @@ todayAnother.onclick = () => {
     todayScroll.scrollTop = 0;
 };
 
-todayBack.onclick = () => {
-    feedbackOpen = false;
-    feedbackForm.classList.add("hidden");
-    renderPage(todayReturnPage);
-};
+todayBack.onclick = () => renderPage(todayReturnPage);
 
 openCatalogue.onclick = () => renderPage("activities");
 changeConditions.onclick = () => renderPage("child");
@@ -1338,6 +1332,12 @@ const renderRating = (input, output, key, values, labels) => {
     output.textContent = labels[draft[key]];
 };
 
+const updateFeedbackAction = () => {
+    const skipped = draft.status === "skipped";
+    todayAnother.classList.toggle("hidden", !todayRec || !skipped);
+    feedbackSave.classList.toggle("hidden", !todayRec || skipped);
+};
+
 const renderFeedbackForm = () => {
     renderRating(fbStatus, fbStatusValue, "status", FEEDBACK_STATUSES, S.feedbackStatuses);
     renderRating(fbInterest, fbInterestValue, "interest", FEEDBACK_INTERESTS, S.interestFeedback);
@@ -1348,6 +1348,7 @@ const renderFeedbackForm = () => {
     });
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
+    updateFeedbackAction();
 };
 
 const bindRating = (input, values, key) => {
@@ -1361,23 +1362,6 @@ bindRating(fbStatus, FEEDBACK_STATUSES, "status");
 bindRating(fbInterest, FEEDBACK_INTERESTS, "interest");
 bindRating(fbDifficulty, FEEDBACK_DIFFICULTIES, "difficulty");
 
-const closeFeedback = () => {
-    feedbackOpen = false;
-    feedbackForm.classList.add("hidden");
-    renderToday();
-    todayScroll.scrollTop = 0;
-};
-
-const openFeedback = () => {
-    draft = {status: "completed", interest: "not_observed", difficulty: "not_observed", reason: null};
-    fbComment.value = "";
-    renderFeedbackForm();
-    feedbackOpen = true;
-    feedbackForm.classList.remove("hidden");
-    renderToday();
-    feedbackForm.scrollIntoView({behavior: "smooth", block: "start"});
-};
-
 const saveFeedbackForm = () => {
     const skipped = draft.status === "skipped";
     saveFeedback(todayRec, {
@@ -1387,11 +1371,10 @@ const saveFeedbackForm = () => {
         reason: NEEDS_REASON.includes(draft.status) ? draft.reason : null,
         comment: fbComment.value.trim() || null,
     });
-    closeFeedback();
+    renderToday();
 };
 
 feedbackSave.onclick = saveFeedbackForm;
-feedbackCancel.onclick = closeFeedback;
 
 // ==========================================================================
 // 15. ACTIVITY DETAILS
@@ -2107,8 +2090,6 @@ const renderPage = (name) => {
 
 const openTodayPage = () => {
     if (currentPage !== "today") todayReturnPage = currentPage;
-    feedbackOpen = false;
-    feedbackForm.classList.add("hidden");
     renderPage("today");
     todayScroll.scrollTop = 0;
 };
