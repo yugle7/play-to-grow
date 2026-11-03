@@ -608,9 +608,11 @@ const navBar = $("nav-bar");
 const navButtons = [...nav.querySelectorAll("button")];
 
 const header = $("top");
+const topSelected = $("top-selected");
+const topChildren = $("top-children");
 const childSelect = $("child-select");
 const childAge = $("child-age");
-const plus = $("plus");
+const childNames = $("child-names");
 
 /* --- Calendar --- */
 const calendarWelcome = $("calendar-welcome");
@@ -1314,24 +1316,56 @@ const resetInferredPreferences = (childId) =>
 // 13. HEADER
 // ==========================================================================
 
+const renderChildNames = () => {
+    childNames.replaceChildren(
+        ...data.children.map((child) => {
+            const selected = child.id === data.activeChildId;
+            const button = el("button", {
+                type: "button",
+                className: `tap chip${selected ? " selected" : ""}`,
+                textContent: child.name,
+                onclick: () => {
+                    updateData((d) => (d.activeChildId = child.id));
+                    childFormNew = false;
+                    render();
+                },
+            });
+            button.setAttribute("aria-pressed", String(selected));
+            return button;
+        }),
+    );
+};
+
 const renderHeader = () => {
-    if (currentPage === "activity" || currentPage === "search" || currentPage === "create") {
+    if (currentPage === "search" || currentPage === "create" || currentPage === "settings") {
         header.classList.add("hidden");
         return;
     }
+
     const child = activeChild();
+    const childPage = currentPage === "child";
+    if (!child && !childPage) {
+        header.classList.add("hidden");
+        return;
+    }
+
     header.classList.remove("hidden");
-    plus.classList.toggle("hidden", currentPage !== "child");
-    childSelect.classList.toggle("hidden", !child);
-    childAge.classList.toggle("hidden", !child);
-    if (!child) return;
+    header.classList.toggle("with-close", currentPage === "activity");
+    topSelected.classList.toggle("hidden", childPage);
+    topChildren.classList.toggle("hidden", !childPage);
+
+    if (childPage) {
+        renderChildNames();
+        return;
+    }
+
     setSelectValue(childSelect, child.name);
     childAge.textContent = formatAge(child.birthDate);
 };
 
 header.onclick = (event) => {
     if (event.target.closest("button, a, input, textarea, select")) return;
-    if (currentPage !== "child") renderPage("child");
+    if (currentPage === "calendar" || currentPage === "stats") renderPage("child");
 };
 
 childSelect.onclick = () => {

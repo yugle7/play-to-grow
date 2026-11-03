@@ -20,18 +20,20 @@
 <body>
 
 <header id="top" class="width-500 hidden">
-    <div class="row gap-10 pad-20">
+    <div id="top-selected" class="row gap-10 pad-20">
         <button id="child-select" class="select" type="button" aria-haspopup="dialog"
                 data-i18n-aria-label="selectChild">
             <span class="select-value"></span>
         </button>
         <span id="child-age" class="help small"></span>
-        <button id="plus" class="icon-button add-child hidden right" type="button"
-                data-i18n-aria-label="addChild">
+    </div>
+    <div id="top-children" class="row gap-10 pad-20 hidden">
+        <button id="plus" class="icon-button add-child" type="button" data-i18n-aria-label="addChild">
             <svg class="tool">
                 <use href="sprite.svg#plus"></use>
             </svg>
         </button>
+        <div id="child-names" class="chips tabs grow"></div>
     </div>
 </header>
 

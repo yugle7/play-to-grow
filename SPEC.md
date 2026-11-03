@@ -34,9 +34,14 @@ The bottom navigation has five items:
 | Child | Main page |
 | Settings | Main page |
 
-Calendar, Statistics, Child and Settings keep the bottom navigation and the child header visible.
+Calendar, Statistics, Child and Settings keep the bottom navigation visible.
 
-Activity, Search and New Activity are full-screen pages. They hide the bottom navigation and the child header. The user leaves them with their own fixed or header actions.
+- Calendar, Activity and Statistics show the selected-child header.
+- Child shows the add-child plus button and all child names.
+- Settings shows no child header.
+- Search and New Activity hide the child header.
+- Activity is a full-screen page and hides the bottom navigation, but keeps the selected-child header.
+- Search and New Activity are full-screen pages and hide both navigation and the child header.
 
 ### 3.2 Page switching
 
@@ -51,20 +56,34 @@ Activity, Search and New Activity are full-screen pages. They hide the bottom na
 
 ## 4. Child context header
 
-The global header is shown on Calendar, Statistics, Child and Settings.
+The global header changes by page.
 
-It contains:
+### Calendar, Activity and Statistics
 
-- the active child's name, which opens the child picker;
-- the active child's age;
-- a plus button on the Child page for adding another child.
+The header shows only the selected child's name and age. The name opens the shared child picker, and selecting a child updates `activeChildId` and re-renders the current page.
 
-Behavior:
+### Child
 
-- The child picker uses the shared options sheet.
-- Selecting a child updates `activeChildId` and re-renders the current page with child-scoped data.
-- Tapping the non-button part of the header opens the Child page.
-- The header is hidden on Activity, Search and New Activity.
+The header shows:
+
+- a plus icon button for adding a child;
+- all existing child names as selectable chips.
+
+Clicking a name makes that child active and re-renders the Child page. The active child is visually selected.
+
+### Settings
+
+No child header is shown.
+
+### Search and New Activity
+
+No child header is shown.
+
+### General behavior
+
+- If no child exists, the header is hidden on Calendar, Activity and Statistics.
+- The Child page header is still shown with the add button when no child exists.
+- On Calendar and Statistics, tapping the non-button part of the selected-child header opens the Child page.
 - A child can also be created from the Calendar or Activity empty state.
 
 ## 5. Calendar page
@@ -141,7 +160,7 @@ If no child exists, the calendar is hidden and the page shows the add-child welc
 
 The middle navigation item opens the full-screen Activity page.
 
-- Navigation and child header are hidden.
+- The bottom navigation is hidden; the selected-child header remains visible.
 - The page resolves the selected child's current recommendation for today.
 - If no child exists, the welcome/add-child state is shown.
 - If no eligible activity exists, an empty explanation is shown; search and creation remain available.
@@ -636,7 +655,7 @@ Custom activities use the same schema and are merged into the catalogue at runti
 The implementation is complete when these checks pass:
 
 - Calendar opens first and the five navigation items work.
-- Activity opens as a full-screen page with navigation and header hidden.
+- Activity opens as a full-screen page with navigation hidden and the selected-child header visible.
 - Activity Save and Close return to Calendar.
 - Search opens as a full-screen page, filters available activities, and returns to Activity.
 - New Activity is full-screen, validates fields, saves a custom activity and returns to Activity.

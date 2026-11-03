@@ -75,11 +75,11 @@
     </symbol>
 
     <symbol id="download" viewBox="0 0 24 24">
-        <path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>
+        <path d="M12 2v11M7 10l5 5 5-5M5 20h14"/>
     </symbol>
 
     <symbol id="upload" viewBox="0 0 24 24">
-        <path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>
+        <path d="M12 16V5M7 8l5-5 5 5M5 20h14"/>
     </symbol>
 
     <symbol id="refresh" viewBox="0 0 24 24">

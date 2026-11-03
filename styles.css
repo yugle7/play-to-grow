@@ -680,9 +680,9 @@ details[open] summary .minus {
 
 /* Facts */
 .facts {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 4px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .facts dt {
@@ -782,6 +782,18 @@ nav .active > svg {
 
 #plus svg {
     stroke: var(--accent);
+}
+
+#top.with-close > .row {
+    padding-right: 58px;
+}
+
+#top-children {
+    align-items: flex-start;
+}
+
+#child-names {
+    flex: 1;
 }
 
 #child-select {

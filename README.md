@@ -143,7 +143,7 @@ There is no reactive framework. The rule is simple:
 1. All data changes go through `updateData(change)`: the function modifies the `data` object and immediately saves it to `localStorage`.
 2. The UI is then re-rendered: `render()` for the entire current screen, or a function for a specific section, such as `renderInterests(child)`.
 
-`render()` re-renders the header with the active child's name and age and the current section. The rendering function for each section can be found in the `renderers` object.
+`render()` re-renders the page-specific child header and the current section. The header shows the selected child on Calendar, Activity and Statistics, the add button and all child names on Child, and nothing on Settings. The rendering function for each section can be found in the `renderers` object.
 
 ### Safe Text Insertion
 
@@ -456,7 +456,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"39"` → `"40"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"40"` → `"41"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
