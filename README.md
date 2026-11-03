@@ -1,10 +1,10 @@
 # Activities with Your Baby
 
-A mobile web application (PWA) for parents of babies aged 0–12 months. Every day, it suggests one suitable activity based on the child's age, skills, and interests. After the activity, the parent briefly records how it went, and future suggestions take this feedback into account.
+A mobile web application (PWA) for parents of babies aged 0–12 months. It works as a personal activity diary: a monthly calendar, an activity entry screen, and statistics for each child. The app suggests suitable activities based on the child's age, skills, and interests, and records how each activity went so future suggestions can take the feedback into account.
 
 The app works offline, does not send any data to a server, and stores all information locally on the device.
 
-> **Important.** The activity catalogue in `data/activities.json` is currently for demonstration purposes: all 29 activities have `"safetyReviewed": false`. The app only recommends reviewed activities, so the Today screen will display "No suitable activities for today" until a specialist has reviewed the activities. See Safety Review for details.
+> **Important.** The activity catalogue in `data/activities.json` is currently for demonstration purposes. The app only recommends activities with `"safetyReviewed": true`, so review the catalogue before using the app with a child. See Safety Review for details.
 
 ## Table of Contents
 
@@ -32,19 +32,19 @@ The app has five sections in the bottom navigation:
 
 | Section        | Description                                                                                                                                                                |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Today**      | Today's activity: goal, duration, materials, steps, safety instructions, videos, and feedback form. Close and conditional Save/Another Activity buttons. |
-| **Activities** | The full catalogue, with search by title and filters by developmental area, age, duration, and interest. Tap an activity to open its full description.                     |
-| **History**    | Previously suggested activities and their outcomes. Filters: all, completed, skipped, and developmental area.                                                              |
+| **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its activity list and feedback summary. |
+| **Activity**   | Full-screen activity entry opened from the middle navigation button: name input with suggestions, Search and New Activity pages, a recommendation refresh button, full activity description, and the feedback form with actual duration. Save closes back to Calendar. |
+| **Statistics** | Charts for the selected child: activity frequency, time spent, developmental areas, consistency, feedback over time, and positive activities and skills. |
 | **Child**      | Child profile: name, date of birth, estimated due date (optional), age, and gender (optional). Skills, interests, and activity conditions. Multiple children can be added. |
-| **Settings**   | Export and import data as JSON, reset feedback-based preferences, and delete all data.                                                                                     |
+| **Settings**   | Export and import data as JSON, reset feedback-based preferences, and delete all data. |
 
 Typical user flow:
 
 1. The parent creates a child profile by entering the child's name and date of birth.
 2. Optionally, the parent adds the child's skills and interests, as well as activity preferences: available time, preferred location, and materials on hand.
-3. The Today screen displays one activity. If it is not suitable, the parent taps "Another Activity".
-4. The parent fills in the feedback form below the activity: whether the activity was successful, whether the child enjoyed it, and whether it was too difficult.
-5. Future activities are selected based on this feedback.
+3. The middle navigation button opens the full-screen Activity page with a suggested activity. The parent can search the catalogue, create a new activity, or request another recommendation.
+4. The parent views the full description and fills in the feedback form: outcome, actual duration, interest, difficulty, reason, and an optional comment.
+5. The saved activity appears in the Calendar and Statistics for the selected child, and future recommendations take the feedback into account.
 
 ## Getting Started
 
@@ -78,7 +78,7 @@ Any other static server will also work, such as the Live Server extension for VS
 
 ### Preview Recommendations During Development
 
-The Today screen remains empty until the catalogue contains reviewed activities. To see how the recommendation algorithm works, temporarily set `"safetyReviewed": true` for a few activities on your local machine.
+The Activity screen has no recommendation until the catalogue contains reviewed activities. To see how the recommendation algorithm works, temporarily set `"safetyReviewed": true` for a few activities on your local machine.
 
 **Do not commit this change to the repository**: an activity should only be marked as reviewed after an actual safety review.
 
@@ -132,7 +132,7 @@ All application logic is in `script.js`. It is a regular script without `import`
 translatePage()       inserts text from STRINGS into elements with data-i18n
 loadData()            loads user data from localStorage
 await loadCatalogue() loads data/activities.json
-renderPage("today")   displays the Today screen
+renderPage("calendar") displays the Calendar screen
 register("sw.js")     registers the service worker for offline mode
 ```
 
@@ -159,7 +159,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children.
 
-Bottom sheets (activity details) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
+The option picker is a `.sheet` element displayed over the `#overlay` backdrop, opened and closed using `openSheet()` / `closeSheet()`. Activity, activity search, and activity creation are full-screen pages using the shared `scroll` / `width-500` / `pad-20` page structure. Activity and New Activity use `cta-space` with fixed action buttons. They are switched with `renderPage()`.
 
 The `#modal` confirmation dialog is displayed with `showModal()`, while short messages are displayed with `showMessage()`.
 
@@ -194,6 +194,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     recommendations: [],    // all suggested activities
     feedback: [],           // feedback records
     preferences: [],        // interests and feedback-based preferences
+    activities: [],         // custom activities created in the app
     settings: {}            // reserved for future use
 }
 ```
@@ -364,7 +365,7 @@ Their Russian labels are in `STRINGS.ru`, under `areas`, `skills`, `interests`, 
 
 An activity is eligible for recommendations only when both `"enabled": true` **and** `"safetyReviewed": true`.
 
-Unreviewed activities are visible in the catalogue with an "Unreviewed" label, but are not suggested on the Today screen.
+Unreviewed activities are not shown in the search of available activities and are not recommended.
 
 The review process:
 
@@ -425,7 +426,7 @@ You can inspect the scores of all activities in the console using `rankActivitie
 
 ## How Feedback Works
 
-Feedback logic is in section `// 12. FEEDBACK`. The feedback form is always shown below the activity and contains the outcome, the child's interest, difficulty, the reason (if the activity was unsuccessful), and an optional comment. The outcome defaults to "Skipped". When it is "Skipped", the bottom-right action is "Another Activity"; otherwise it is "Save".
+Feedback logic is in section `// 12. FEEDBACK`. The Activity screen shows a feedback form below the activity description. It contains the outcome, actual duration, the child's interest, difficulty, the reason (if the activity was unsuccessful), and an optional comment. The outcome defaults to "Skipped". The saved form becomes a diary entry for the selected child.
 
 | Response                                              | Effect                                                                                                                                |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -455,7 +456,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"34"` → `"35"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"36"` → `"37"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
@@ -477,7 +478,7 @@ The activity descriptions in `activities.json` are currently available only in R
 All styles are in `styles.css`, also organised into sections.
 
 - **Colours** are defined as variables at the beginning of the file (`--bg`, `--text`, `--accent`, etc.). The light and dark themes switch automatically based on the system setting (`prefers-color-scheme`). Do not hardcode new colours in CSS rules; add variables instead.
-- **Contrast** of the main text has been checked in both themes. Accent and secondary colours come from the boilerplate palette; recheck contrast whenever they are changed.
+- **Contrast** of the main text has been checked in both themes. Accent and secondary colours come from the shared app palette; recheck contrast whenever they are changed.
 - **Signature detail** — the "blocks" from the app icon: step numbers displayed on coloured blocks (`.steps`) and coloured squares for developmental areas (`.area-*`). The rest of the design is intentionally understated.
 - **Layout** — a column up to 500 px wide (`.width-500`), bottom navigation that accounts for the safe area, and bottom sheets up to 560 px wide.
 - **Components** — pill-shaped buttons (`.tap`, `.tap.selected`), compact chips (`.tap.chip`), segments (`.segment`), input fields (`.input`), bottom sheets (`.sheet` / `.sheet.full`), dialog (`.dialog`), and list selection: a `.select` button opens a shared, centred bottom sheet with `.option` items. There is no need to create similar new elements: look for an existing class first.
@@ -494,7 +495,7 @@ All styles are in `styles.css`, also organised into sections.
 1. Copy an existing activity in `data/activities.json` and give it a new unique `id`.
 2. Fill in the fields using only values from the dictionaries (`AREAS`, `SKILLS`, `INTERESTS`, `MATERIALS`).
 3. Keep `"safetyReviewed": false` until the activity has been reviewed.
-4. Open the Activities section and make sure the activity appears and there are no warnings in the console.
+4. Open Activity -> Search and make sure the activity appears and there are no warnings in the console.
 
 ### Add a New Interest or Material
 
@@ -534,10 +535,10 @@ There are no automated tests in the repository. Before releasing, go through thi
 
 - Create, edit, and delete a child. Check that age is calculated correctly.
 - Add skills, interests, and conditions. Make sure everything is still there after reloading.
-- With two children, each child has their own daily activity, history, and interests.
-- The daily activity remains unchanged after reloading; "Another Activity" does not suggest the current activity again.
-- The feedback form is always visible below the Today activity.
-- Feedback is saved and appears in History; "No time" does not change interests.
+- With two children, calendar, activity recommendations, statistics, feedback, and interests are scoped to the selected child.
+- The selected child persists; "Another Activity" refreshes the recommendation without repeating the current activity when alternatives exist.
+- The Activity screen displays the selected activity description and feedback form.
+- Feedback is saved and appears in the Calendar and Statistics; "No time" does not change interests.
 - Catalogue search and all filters work; activity descriptions open correctly.
 - Test export, import (including rejecting an invalid file), and deleting all data.
 - Test offline mode: open the app, turn off the network, reload, and make sure everything still works.

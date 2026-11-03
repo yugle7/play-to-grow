@@ -21,7 +21,8 @@
 
 <header id="top" class="width-500 hidden">
     <div class="row gap-10 pad-20">
-        <button id="child-select" class="select" type="button">
+        <button id="child-select" class="select" type="button" aria-haspopup="dialog"
+                data-i18n-aria-label="selectChild">
             <span class="select-value"></span>
         </button>
         <span id="child-age" class="help small"></span>
@@ -37,148 +38,274 @@
 <main>
 
 <!-- ==========================================================================
-     СЕГОДНЯ
+     КАЛЕНДАРЬ
      ========================================================================== -->
 
-<section id="today-page" class="hidden">
-    <div id="today-scroll" class="scroll">
+<section id="calendar-page" class="width-500 safe hidden">
+    <div id="calendar-welcome" class="pad-20 col gap-20 hidden">
+        <h2 data-i18n="welcomeTitle"></h2>
+        <p data-i18n="welcomeText"></p>
+        <p class="help small" data-i18n="localDataNote"></p>
+        <button class="tap add-child" data-i18n="addChild"></button>
+    </div>
+
+    <div id="calendar-main">
+        <div id="calendar"></div>
+        <h3 id="chosen-day" class="accent center"></h3>
+        <div id="day-entries"></div>
+    </div>
+</section>
+
+<!-- ==========================================================================
+     ЗАНЯТИЕ
+     ========================================================================== -->
+
+<section id="activity-page" class="hidden">
+    <div class="scroll">
         <div class="width-500 col gap-20 pad-20 cta-space">
-            <div class="row gap-10 today-header">
-                <p id="today-child" class="row gap-10">
-                    <span id="today-child-name"></span>
-                    <span id="today-child-age" class="help small"></span>
-                </p>
-                <button id="today-back" class="fab-close" type="button" data-i18n-aria-label="close">
-                    <svg class="tool">
-                        <use href="sprite.svg#close"></use>
-                    </svg>
-                </button>
+            <div id="activity-welcome" class="col gap-20 hidden">
+                <h2 data-i18n="welcomeTitle"></h2>
+                <p data-i18n="welcomeText"></p>
+                <p class="help small" data-i18n="localDataNote"></p>
+                <button class="tap add-child" data-i18n="addChild"></button>
             </div>
 
-        <div id="welcome" class="col gap-20 hidden">
-            <h3 class="big" data-i18n="welcomeTitle"></h3>
-            <p data-i18n="welcomeText"></p>
-            <p class="help small" data-i18n="localDataNote"></p>
-            <button class="tap add-child" data-i18n="addChild"></button>
-        </div>
+            <div id="activity-main" class="col gap-20">
+                <div class="input-row">
+                    <div class="text-field">
+                        <input id="activity-name" class="input" type="text" maxlength="80" autocomplete="off"
+                               data-i18n-placeholder="activityName" data-i18n-aria-label="activityName">
+                    </div>
+                    <div class="input-actions">
+                        <button id="activity-search" class="icon-button" type="button" data-i18n-aria-label="searchActivity">
+                            <svg class="tool">
+                                <use href="sprite.svg#search"></use>
+                            </svg>
+                        </button>
+                        <button id="activity-add" class="icon-button" type="button" data-i18n-aria-label="createActivity">
+                            <svg class="tool">
+                                <use href="sprite.svg#plus"></use>
+                            </svg>
+                        </button>
+                        <button id="activity-refresh" class="icon-button" type="button" data-i18n-aria-label="another">
+                            <svg class="tool">
+                                <use href="sprite.svg#refresh"></use>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="activity-suggestions" class="col gap-5"></div>
+                </div>
 
-        <div id="today-empty" class="col gap-20 hidden">
-            <h3 class="big" data-i18n="noActivityTitle"></h3>
-            <p id="today-empty-text"></p>
-            <div class="col gap-10">
-                <button id="open-catalogue" class="tap" data-i18n="browseCatalogue"></button>
-                <button id="change-conditions" class="help small left" data-i18n="changeConditions"></button>
-            </div>
-        </div>
+                <p id="activity-no-result" class="empty hidden"></p>
+                <article id="activity-body" class="activity"></article>
+                <p id="activity-status" class="small accent"></p>
 
-        <div id="today-activity" class="col gap-20 hidden">
-            <article id="today-body" class="activity"></article>
-            <p id="today-status" class="small accent"></p>
-            <button id="today-another" class="fab-close" type="button"
-                    data-i18n-aria-label="another">
-                <svg class="tool">
-                    <use href="sprite.svg#refresh"></use>
-                </svg>
-            </button>
-            </div>
-
-            <section id="feedback-form" class="col gap-20">
-                <h3 data-i18n="feedbackTitle"></h3>
-                <div class="field">
-                    <label class="row gap-10" for="fb-status">
-                        <span data-i18n="feedbackStatus"></span> <span>—</span>
-                        <span id="fb-status-value"></span>
+                <section id="feedback-form" class="col gap-20 hidden">
+                    <h3 data-i18n="feedbackTitle"></h3>
+                    <div class="field">
+                        <label class="row gap-10" for="fb-status">
+                            <span data-i18n="feedbackStatus"></span> <span>—</span>
+                            <span id="fb-status-value"></span>
+                        </label>
+                        <input type="range" id="fb-status" min="0" max="3" step="1" value="3">
+                    </div>
+                    <div id="fb-observed" class="col gap-20">
+                        <div class="field">
+                            <label class="row gap-10" for="fb-interest">
+                                <span data-i18n="feedbackInterest"></span> <span>—</span>
+                                <span id="fb-interest-value"></span>
+                            </label>
+                            <input type="range" id="fb-interest" min="0" max="3" step="1" value="3">
+                        </div>
+                        <div class="field">
+                            <label class="row gap-10" for="fb-difficulty">
+                                <span data-i18n="feedbackDifficulty"></span> <span>—</span>
+                                <span id="fb-difficulty-value"></span>
+                            </label>
+                            <input type="range" id="fb-difficulty" min="0" max="3" step="1" value="3">
+                        </div>
+                    </div>
+                    <label class="field">
+                        <span class="label" data-i18n="actualDuration"></span>
+                        <span class="unit-field">
+                            <input id="fb-duration" class="input mono" type="number" inputmode="numeric" min="0" max="240" step="5">
+                            <span class="unit" data-i18n="minutesShort"></span>
+                        </span>
                     </label>
-                    <input type="range" id="fb-status" min="0" max="3" step="1" value="3">
-                </div>
-                <div id="fb-observed" class="col gap-20">
-                    <div class="field">
-                        <label class="row gap-10" for="fb-interest">
-                            <span data-i18n="feedbackInterest"></span> <span>—</span>
-                            <span id="fb-interest-value"></span>
-                        </label>
-                        <input type="range" id="fb-interest" min="0" max="3" step="1" value="3">
+                    <div id="fb-reason-field" class="field">
+                        <span class="label" data-i18n="feedbackReason"></span>
+                        <div id="fb-reason" class="chips" role="group" data-i18n-aria-label="feedbackReason"></div>
                     </div>
-                    <div class="field">
-                        <label class="row gap-10" for="fb-difficulty">
-                            <span data-i18n="feedbackDifficulty"></span> <span>—</span>
-                            <span id="fb-difficulty-value"></span>
-                        </label>
-                        <input type="range" id="fb-difficulty" min="0" max="3" step="1" value="3">
-                    </div>
-                </div>
-                <div id="fb-reason-field" class="field">
-                    <span class="label" data-i18n="feedbackReason"></span>
-                    <div id="fb-reason" class="chips" role="group" data-i18n-aria-label="feedbackReason"></div>
-                </div>
-                <label class="field">
-                    <span class="label" data-i18n="comment"></span>
-                    <textarea id="fb-comment" class="input" rows="2" maxlength="300"
-                              data-i18n-placeholder="commentPlaceholder"></textarea>
-                </label>
-                <button id="feedback-save" class="fab-round hidden" type="button" data-i18n-aria-label="save">
+                    <label class="field">
+                        <span class="label" data-i18n="comment"></span>
+                        <textarea id="fb-comment" class="input" rows="2" maxlength="300"
+                                  data-i18n-placeholder="commentPlaceholder"></textarea>
+                    </label>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <button id="activity-confirm" class="fab-round hidden" type="button" data-i18n-aria-label="save">
+        <svg class="tool">
+            <use href="sprite.svg#ok"></use>
+        </svg>
+    </button>
+    <button id="activity-cancel" class="fab-close" type="button" data-i18n-aria-label="close">
+        <svg class="tool">
+            <use href="sprite.svg#close"></use>
+        </svg>
+    </button>
+</section>
+
+<!-- ==========================================================================
+     ПОИСК ЗАНЯТИЙ
+     ========================================================================== -->
+
+<section id="search-page" class="hidden">
+    <div class="scroll">
+        <div class="width-500 col gap-20 pad-20">
+            <div class="row gap-10">
+                <button id="search-back" class="icon-button" type="button" data-i18n-aria-label="close">
                     <svg class="tool">
-                        <use href="sprite.svg#ok"></use>
+                        <use href="sprite.svg#prev"></use>
                     </svg>
                 </button>
-            </section>
+                <div class="text-field">
+                    <input id="search" class="input" type="text" autocomplete="off" enterkeyhint="search"
+                           data-i18n-placeholder="searchPlaceholder" data-i18n-aria-label="searchPlaceholder">
+                    <button id="search-clear" class="clear hidden" data-i18n-aria-label="clear">
+                        <svg class="tool">
+                            <use href="sprite.svg#close"></use>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="filter-area" class="chips tabs scroll-x" role="group" data-i18n-aria-label="filterArea"></div>
+            <div class="field">
+                <label class="row gap-10" for="filter-age">
+                    <span data-i18n="filterAge"></span> <span>—</span>
+                    <span id="filter-age-value"></span>
+                </label>
+                <input type="range" id="filter-age" min="0" max="12" step="1" value="0">
+            </div>
+            <div class="field">
+                <label class="row gap-10" for="filter-duration">
+                    <span data-i18n="filterDuration"></span> <span>—</span>
+                    <span id="filter-duration-value"></span>
+                </label>
+                <input type="range" id="filter-duration" min="0" max="15" step="5" value="0">
+            </div>
+            <div class="field">
+                <span class="label" data-i18n="filterInterest"></span>
+                <div id="filter-interest" class="chips" role="group" data-i18n-aria-label="filterInterest"></div>
+            </div>
+            <p id="catalogue-status" class="help small"></p>
+            <ul id="activity-list" class="list"></ul>
+            <p id="activity-empty" class="empty hidden" data-i18n="nothingFound"></p>
         </div>
     </div>
 </section>
 
 <!-- ==========================================================================
-     ЗАНЯТИЯ
+     НОВОЕ ЗАНЯТИЕ
      ========================================================================== -->
 
-<section id="activities-page" class="width-500 safe hidden">
-    <h2 data-i18n="activities"></h2>
-    <div class="pad-20 col gap-15">
-        <div class="text-field">
-            <input id="search" class="input" type="text" autocomplete="off" enterkeyhint="search"
-                   data-i18n-placeholder="searchPlaceholder" data-i18n-aria-label="searchPlaceholder">
-            <button id="search-clear" class="clear hidden" data-i18n-aria-label="clear">
-                <svg class="tool">
-                    <use href="sprite.svg#close"></use>
-                </svg>
-            </button>
-        </div>
-        <div id="filter-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
-        <div class="field">
-            <span class="label" data-i18n="filterAge"></span>
-            <button id="filter-age" class="input select" type="button" aria-haspopup="dialog">
-                <span class="select-value"></span>
-            </button>
-        </div>
-        <div class="field">
-            <label class="row gap-10" for="filter-duration">
-                <span data-i18n="filterDuration"></span> <span>—</span>
-                <span id="filter-duration-value"></span>
+<section id="create-page" class="hidden">
+    <div class="scroll">
+        <div class="width-500 col gap-20 pad-20 cta-space">
+            <label class="field">
+                <span class="label" data-i18n="activityName"></span>
+                <input id="create-title" class="input" type="text" maxlength="80" autocomplete="off">
             </label>
-            <input type="range" id="filter-duration" min="0" max="15" step="5" value="0">
+            <label class="field">
+                <span class="label" data-i18n="descriptionLabel"></span>
+                <textarea id="create-description" class="input" rows="3" maxlength="400"></textarea>
+            </label>
+            <div class="row gap-10">
+                <label class="field">
+                    <span class="label" data-i18n="durationMinutes"></span>
+                    <input id="create-duration" class="input mono" type="number" inputmode="numeric" min="1" max="240" step="5" value="5">
+                </label>
+                <label class="field">
+                    <span class="label" data-i18n="ageFrom"></span>
+                    <input id="create-age-min" class="input mono" type="number" inputmode="numeric" min="0" max="36" value="0">
+                </label>
+                <label class="field">
+                    <span class="label" data-i18n="ageTo"></span>
+                    <input id="create-age-max" class="input mono" type="number" inputmode="numeric" min="0" max="36" value="12">
+                </label>
+            </div>
+            <div class="field">
+                <span class="label" data-i18n="developmentAreas"></span>
+                <div id="create-areas" class="chips" role="group" data-i18n-aria-label="developmentAreas"></div>
+            </div>
+            <label class="field">
+                <span class="label" data-i18n="instructions"></span>
+                <textarea id="create-instructions" class="input" rows="4" maxlength="1200"></textarea>
+            </label>
+            <label class="field">
+                <span class="label" data-i18n="safety"></span>
+                <textarea id="create-safety" class="input" rows="3" maxlength="800"></textarea>
+            </label>
         </div>
-        <div class="field">
-            <span class="label" data-i18n="filterInterest"></span>
-            <div id="filter-interest" class="chips" role="group" data-i18n-aria-label="filterInterest"></div>
-        </div>
-        <p id="catalogue-status" class="help small"></p>
     </div>
-    <ul id="activity-list" class="list"></ul>
-    <p id="activity-empty" class="empty hidden" data-i18n="nothingFound"></p>
+
+    <button id="create-save" class="fab-round" type="button" data-i18n-aria-label="save">
+        <svg class="tool">
+            <use href="sprite.svg#ok"></use>
+        </svg>
+    </button>
+    <button id="create-cancel" class="fab-close" type="button" data-i18n-aria-label="close">
+        <svg class="tool">
+            <use href="sprite.svg#close"></use>
+        </svg>
+    </button>
 </section>
 
 <!-- ==========================================================================
-     ИСТОРИЯ
+     СТАТИСТИКА
      ========================================================================== -->
 
-<section id="history-page" class="width-500 safe hidden">
-    <h2 data-i18n="history"></h2>
-    <div class="pad-20 col gap-15">
-        <div id="history-filter" class="chips tabs" role="group"
-             data-i18n-aria-label="historyFilterLabel"></div>
-        <div id="history-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
+<section id="stats-page" class="width-500 pad-20 safe hidden">
+    <p id="stats-empty" class="empty hidden"></p>
+    <div id="stats-content">
+        <section class="card">
+            <h3><span data-i18n="frequencyTitle"></span><span id="frequency-total" class="value help small"></span></h3>
+            <div id="frequency-chart" class="chart bar-chart"></div>
+        </section>
+        <section class="card">
+            <h3><span data-i18n="timeTitle"></span><span id="time-total" class="value help small"></span></h3>
+            <div id="time-chart" class="chart bar-chart"></div>
+        </section>
+        <section class="card">
+            <h3><span data-i18n="areasTitle"></span></h3>
+            <div id="areas-chart" class="chart h-chart"></div>
+        </section>
+        <section class="card">
+            <h3><span data-i18n="consistencyTitle"></span></h3>
+            <div id="consistency-summary" class="row gap-20"></div>
+            <div id="consistency-chart" class="chart consistency-chart"></div>
+        </section>
+        <section class="card">
+            <h3><span data-i18n="feedbackTrendTitle"></span></h3>
+            <div id="feedback-chart" class="chart bar-chart stacked"></div>
+            <div id="feedback-legend" class="row gap-10 help small"></div>
+        </section>
+        <section class="card">
+            <h3 data-i18n="positiveTitle"></h3>
+            <div class="col gap-15">
+                <div>
+                    <span class="label" data-i18n="positiveActivities"></span>
+                    <div id="positive-activities" class="chart h-chart"></div>
+                </div>
+                <div>
+                    <span class="label" data-i18n="positiveSkills"></span>
+                    <div id="positive-skills" class="chart h-chart"></div>
+                </div>
+            </div>
+        </section>
     </div>
-    <ul id="history-list" class="list"></ul>
-    <p id="history-empty" class="empty hidden" data-i18n="historyEmpty"></p>
 </section>
 
 <!-- ==========================================================================
@@ -268,7 +395,6 @@
      ========================================================================== -->
 
 <section id="settings-page" class="width-500 safe hidden">
-    <h2 data-i18n="settings"></h2>
     <div class="pad-20 col gap-10">
         <p class="help small" data-i18n="privacyNote"></p>
         <p class="help small" data-i18n="disclaimer"></p>
@@ -292,6 +418,7 @@
         </svg>
         <span data-i18n="privacy"></span>
     </a>
+    <br>
 
     <button id="export">
         <svg class="icon">
@@ -312,6 +439,9 @@
         </svg>
         <span data-i18n="resetPreferences"></span>
     </button>
+
+    <br>
+
     <button id="delete-all" class="red">
         <svg class="icon">
             <use href="sprite.svg#trash"></use>
@@ -328,27 +458,27 @@
 
 <nav id="nav-bar" data-i18n-aria-label="navigation">
     <div id="nav">
-        <button id="active" data-page="activities" class="active" data-i18n-aria-label="activities" aria-current="page">
+        <button id="nav-calendar" data-page="calendar" class="active" data-i18n-aria-label="calendar" aria-current="page">
             <svg>
-                <use href="sprite.svg#search"></use>
+                <use href="sprite.svg#diary"></use>
             </svg>
         </button>
-        <button id="today" data-i18n-aria-label="today">
+        <button id="nav-activity" data-page="activity" data-i18n-aria-label="activity">
             <svg>
                 <use href="sprite.svg#plus"></use>
             </svg>
         </button>
-        <button data-page="history" data-i18n-aria-label="history">
+        <button id="nav-stats" data-page="stats" data-i18n-aria-label="statistics">
             <svg>
-                <use href="sprite.svg#history"></use>
+                <use href="sprite.svg#stats"></use>
             </svg>
         </button>
-        <button data-page="child" data-i18n-aria-label="child">
+        <button id="nav-child" data-page="child" data-i18n-aria-label="child">
             <svg>
                 <use href="sprite.svg#child"></use>
             </svg>
         </button>
-        <button data-page="settings" data-i18n-aria-label="settings">
+        <button id="nav-settings" data-page="settings" data-i18n-aria-label="settings">
             <svg>
                 <use href="sprite.svg#settings"></use>
             </svg>
@@ -361,14 +491,6 @@
      ========================================================================== -->
 
 <div id="overlay"></div>
-
-<div id="activity-sheet" class="sheet full activity" role="dialog" aria-modal="true">
-    <button type="button" class="icon-button close" data-i18n-aria-label="close">
-        <svg class="tool">
-            <use href="sprite.svg#close"></use>
-        </svg>
-    </button>
-</div>
 
 <div id="options-sheet" class="sheet center small" role="dialog" aria-modal="true" aria-labelledby="options-title">
     <div class="row between">
