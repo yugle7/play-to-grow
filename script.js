@@ -187,7 +187,6 @@ const STRINGS = {
         descriptionLabel: "Описание",
         actualDuration: "Сколько длилось",
         durationMinutes: "Длительность, мин",
-        minutesShort: "мин",
         ageFrom: "Возраст от, мес.",
         ageTo: "Возраст до, мес.",
         developmentAreas: "Развивающие области",
@@ -667,6 +666,7 @@ const fbReasonField = $("fb-reason-field");
 const fbReason = $("fb-reason");
 const fbComment = $("fb-comment");
 const fbDuration = $("fb-duration");
+const fbDurationValue = $("fb-duration-value");
 
 /* --- Search and create --- */
 const searchInput = $("search");
@@ -1558,6 +1558,12 @@ const shiftCalendarMonth = (delta) => {
 
 // --- Activity ---
 
+const renderFeedbackDuration = () => {
+    const value = Math.max(0, Number(fbDuration.value) || 0);
+    fbDurationValue.textContent = `${value} ${S.units.minutes}`;
+    fbDuration.style.setProperty("--value", `${(value / Number(fbDuration.max)) * 100}%`);
+};
+
 const resetFeedback = (activity) => {
     const saved = todayRec ? feedbackFor(todayRec.id) : null;
     draftRecId = todayRec?.id ?? null;
@@ -1565,7 +1571,10 @@ const resetFeedback = (activity) => {
         ? {status: saved.status, interest: saved.interest, difficulty: saved.difficulty, reason: saved.reason}
         : {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
     fbComment.value = saved?.comment ?? "";
-    fbDuration.value = saved?.duration ?? activity?.duration ?? 0;
+    const duration = saved?.duration ?? activity?.duration ?? 0;
+    fbDuration.max = String(Math.max(60, Math.ceil(Number(duration) || 0)));
+    fbDuration.value = duration;
+    renderFeedbackDuration();
 };
 
 const renderActivity = () => {
@@ -1702,6 +1711,7 @@ const bindRating = (input, values, key) => {
 bindRating(fbStatus, FEEDBACK_STATUSES, "status");
 bindRating(fbInterest, FEEDBACK_INTERESTS, "interest");
 bindRating(fbDifficulty, FEEDBACK_DIFFICULTIES, "difficulty");
+fbDuration.addEventListener("input", renderFeedbackDuration);
 
 const closeActivityPage = () => {
     draftRecId = null;
@@ -1714,7 +1724,7 @@ const saveFeedbackForm = () => {
     if (!todayRec) return;
     const activity = findActivity(todayRec.activityId);
     const skipped = draft.status === "skipped";
-    const duration = Math.max(0, Number(fbDuration.value) || activity?.duration || 0);
+    const duration = Math.max(0, Number(fbDuration.value) || 0);
     saveFeedback(todayRec, {
         status: draft.status,
         interest: skipped ? "not_observed" : draft.interest,

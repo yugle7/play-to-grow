@@ -198,7 +198,7 @@ Fields:
 - status, defaulting to `skipped`;
 - interest;
 - difficulty;
-- actual duration in minutes, defaulting to the planned duration;
+- actual duration as a range input in minutes, defaulting to the planned duration;
 - reason;
 - optional comment.
 

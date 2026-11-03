@@ -1085,23 +1085,6 @@ nav .active > svg {
     flex-wrap: wrap;
 }
 
-.unit-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.unit-field .input {
-    flex: 1;
-    min-width: 0;
-}
-
-.unit {
-    color: var(--help);
-    font-size: 14px;
-    white-space: nowrap;
-}
-
 .sheet-scroll {
     flex: 1;
     min-height: 0;

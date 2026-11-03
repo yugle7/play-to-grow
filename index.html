@@ -125,13 +125,13 @@
                             <input type="range" id="fb-difficulty" min="0" max="3" step="1" value="3">
                         </div>
                     </div>
-                    <label class="field">
-                        <span class="label" data-i18n="actualDuration"></span>
-                        <span class="unit-field">
-                            <input id="fb-duration" class="input mono" type="number" inputmode="numeric" min="0" max="240" step="5">
-                            <span class="unit" data-i18n="minutesShort"></span>
-                        </span>
-                    </label>
+                    <div class="field">
+                        <label class="row gap-10" for="fb-duration">
+                            <span data-i18n="actualDuration"></span> <span>—</span>
+                            <span id="fb-duration-value"></span>
+                        </label>
+                        <input type="range" id="fb-duration" min="0" max="60" step="1" value="0">
+                    </div>
                     <div id="fb-reason-field" class="field">
                         <span class="label" data-i18n="feedbackReason"></span>
                         <div id="fb-reason" class="chips" role="group" data-i18n-aria-label="feedbackReason"></div>
@@ -181,7 +181,7 @@
                     </button>
                 </div>
             </div>
-            <div id="filter-area" class="chips tabs scroll-x" role="group" data-i18n-aria-label="filterArea"></div>
+            <div id="filter-area" class="chips tabs" role="group" data-i18n-aria-label="filterArea"></div>
             <div class="field">
                 <label class="row gap-10" for="filter-age">
                     <span data-i18n="filterAge"></span> <span>—</span>
