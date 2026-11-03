@@ -144,7 +144,7 @@ There is no reactive framework. The rule is simple:
 1. All data changes go through `updateData(change)`: the function modifies the `data` object and immediately saves it to `localStorage`.
 2. The UI is then re-rendered: `render()` for the entire current screen, or a function for a specific section, such as `renderInterests(child)`.
 
-`render()` re-renders the header with the child selector and the current section. The rendering function for each section can be found in the `renderers` object.
+`render()` re-renders the header with the active child's name and age and the current section. The rendering function for each section can be found in the `renderers` object.
 
 ### Safe Text Insertion
 
@@ -160,7 +160,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children.
 
-Bottom sheets (activity details and feedback) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
+Bottom sheets (activity details) are `.sheet` elements displayed over the `#overlay` backdrop. They are opened and closed using `openSheet()` / `closeSheet()`. Pressing Esc or tapping the backdrop also closes the sheet.
 
 The `#modal` confirmation dialog is displayed with `showModal()`, while short messages are displayed with `showMessage()`.
 
@@ -456,7 +456,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"30"` → `"31"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"32"` → `"33"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
@@ -481,7 +481,7 @@ All styles are in `styles.css`, also organised into sections.
 - **Contrast** of the main text has been checked in both themes. Accent and secondary colours come from the boilerplate palette; recheck contrast whenever they are changed.
 - **Signature detail** — the "blocks" from the app icon: step numbers displayed on coloured blocks (`.steps`) and coloured squares for developmental areas (`.area-*`). The rest of the design is intentionally understated.
 - **Layout** — a column up to 500 px wide (`.width-500`), bottom navigation that accounts for the safe area, and bottom sheets up to 560 px wide.
-- **Components** — pill-shaped buttons (`.tap`, `.tap.selected`), compact chips (`.tap.chip`), segments (`.segment`), input fields (`.input`), bottom sheets (`.sheet` / `.sheet.full`), dialog (`.dialog`), and list selection: a `.select` button opens a shared, centred bottom sheet with `.option` items. The child selector includes an "Add Child" button. There is no need to create similar new elements: look for an existing class first.
+- **Components** — pill-shaped buttons (`.tap`, `.tap.selected`), compact chips (`.tap.chip`), segments (`.segment`), input fields (`.input`), bottom sheets (`.sheet` / `.sheet.full`), dialog (`.dialog`), and list selection: a `.select` button opens a shared, centred bottom sheet with `.option` items. There is no need to create similar new elements: look for an existing class first.
 - **Fonts** — system fonts only, with no downloaded font files; base font size is 18 px.
 - **Icons** are stored in `sprite.svg` and included as follows: `<svg><use href="sprite.svg#name"></use></svg>`.
 - **Input fields** must be at least 16 px, otherwise iPhones automatically zoom in when they are tapped.

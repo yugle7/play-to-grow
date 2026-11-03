@@ -1122,22 +1122,14 @@ nav .active > svg {
     z-index: 2;
 }
 
-#feedback-sheet {
-    max-width: none;
-}
-
-#feedback-sheet > .row h3 {
-    min-width: 0;
-    padding-right: 58px;
-    overflow-wrap: anywhere;
-}
-
-#feedback-sheet .field > label.row {
-    flex-wrap: wrap;
-}
-
-#feedback-sheet .sheet-scroll {
+#feedback-form {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
     padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}
+
+#feedback-form .field > label.row {
+    flex-wrap: wrap;
 }
 
 .sheet-scroll {

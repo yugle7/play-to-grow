@@ -187,6 +187,7 @@ const STRINGS = {
         },
 
         /* --- Feedback --- */
+        feedbackTitle: "Как прошло занятие?",
         feedbackStatus: "Результат",
         feedbackInterest: "Интерес ребенка",
         feedbackDifficulty: "Сложность",
@@ -220,7 +221,6 @@ const STRINGS = {
         },
 
         /* --- Child profile --- */
-        selectChild: "Выбрать ребенка",
         noChildText: "Пока нет ни одного профиля.",
         addChild: "Добавить ребенка",
         newChild: "Новый ребенок",
@@ -417,6 +417,7 @@ let data;
 let catalogue = [];
 let catalogueError = false;
 let todayRec = null;
+let feedbackOpen = false;
 let todayReturnPage = "activities";
 
 let currentPage = "activities";
@@ -617,8 +618,7 @@ const conditionIntensity = $("condition-intensity");
 const conditionMaterials = $("condition-materials");
 
 /* --- Feedback --- */
-const feedbackSheet = $("feedback-sheet");
-const feedbackTitle = $("feedback-title");
+const feedbackForm = $("feedback-form");
 const feedbackSave = $("feedback-save");
 const feedbackCancel = $("feedback-cancel");
 const fbStatus = $("fb-status");
@@ -660,7 +660,6 @@ const overlay = $("overlay");
 const optionsSheet = $("options-sheet");
 const optionsTitle = $("options-title");
 const optionsList = $("options-list");
-const optionsAddChild = $("options-add-child");
 const modal = $("modal");
 const question = $("question");
 const modalYes = $("modal-yes");
@@ -859,8 +858,7 @@ const closeSheet = () => {
 
 overlay.onclick = closeSheet;
 
-const openOptions = (title, options, selected, onSelect, showAddChild = false) => {
-    optionsAddChild.classList.toggle("hidden", !showAddChild);
+const openOptions = (title, options, selected, onSelect) => {
     optionsTitle.textContent = title;
     optionsList.replaceChildren(
         ...options.map(({value, label, disabled = false}) => {
@@ -919,7 +917,8 @@ modal.onclick = (event) => {
 document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (!modal.hidden) closeModal();
-    else closeSheet();
+    else if (openedSheet) closeSheet();
+    else if (feedbackOpen) closeFeedback();
 });
 
 document.querySelectorAll(".sheet .close").forEach((button) => {
@@ -1268,20 +1267,6 @@ header.onclick = (event) => {
     if (currentPage !== "child") renderPage("child");
 };
 
-childSelect.onclick = () => {
-    openOptions(
-        S.selectChild,
-        data.children.map((c) => ({value: c.id, label: c.name})),
-        data.activeChildId,
-        (value) => {
-            updateData((d) => (d.activeChildId = value));
-            childFormNew = false;
-            render();
-        },
-        true,
-    );
-};
-
 // ==========================================================================
 // 14. TODAY
 // ==========================================================================
@@ -1322,7 +1307,8 @@ const renderToday = () => {
     todayBody.replaceChildren(...activityContent(findActivity(todayRec.activityId), false));
     todayStatus.textContent = resultText(todayRec);
     todayStatus.classList.toggle("hidden", status === "recommended");
-    todayFinish.classList.toggle("hidden", finished);
+    todayFinish.classList.toggle("hidden", finished || feedbackOpen);
+    todayAnother.classList.toggle("hidden", feedbackOpen);
     todayAnother.setAttribute("aria-label", finished ? S.oneMore : S.another);
 };
 
@@ -1334,7 +1320,11 @@ todayAnother.onclick = () => {
     todayScroll.scrollTop = 0;
 };
 
-todayBack.onclick = () => renderPage(todayReturnPage);
+todayBack.onclick = () => {
+    feedbackOpen = false;
+    feedbackForm.classList.add("hidden");
+    renderPage(todayReturnPage);
+};
 
 openCatalogue.onclick = () => renderPage("activities");
 changeConditions.onclick = () => renderPage("child");
@@ -1371,12 +1361,21 @@ bindRating(fbStatus, FEEDBACK_STATUSES, "status");
 bindRating(fbInterest, FEEDBACK_INTERESTS, "interest");
 bindRating(fbDifficulty, FEEDBACK_DIFFICULTIES, "difficulty");
 
+const closeFeedback = () => {
+    feedbackOpen = false;
+    feedbackForm.classList.add("hidden");
+    renderToday();
+    todayScroll.scrollTop = 0;
+};
+
 const openFeedback = () => {
     draft = {status: "completed", interest: "not_observed", difficulty: "not_observed", reason: null};
-    feedbackTitle.textContent = findActivity(todayRec.activityId)?.title ?? S.unknownActivity;
     fbComment.value = "";
     renderFeedbackForm();
-    openSheet(feedbackSheet);
+    feedbackOpen = true;
+    feedbackForm.classList.remove("hidden");
+    renderToday();
+    feedbackForm.scrollIntoView({behavior: "smooth", block: "start"});
 };
 
 const saveFeedbackForm = () => {
@@ -1388,12 +1387,11 @@ const saveFeedbackForm = () => {
         reason: NEEDS_REASON.includes(draft.status) ? draft.reason : null,
         comment: fbComment.value.trim() || null,
     });
-    closeSheet();
-    renderToday();
+    closeFeedback();
 };
 
 feedbackSave.onclick = saveFeedbackForm;
-feedbackCancel.onclick = closeSheet;
+feedbackCancel.onclick = closeFeedback;
 
 // ==========================================================================
 // 15. ACTIVITY DETAILS
@@ -2109,6 +2107,8 @@ const renderPage = (name) => {
 
 const openTodayPage = () => {
     if (currentPage !== "today") todayReturnPage = currentPage;
+    feedbackOpen = false;
+    feedbackForm.classList.add("hidden");
     renderPage("today");
     todayScroll.scrollTop = 0;
 };
