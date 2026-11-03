@@ -145,8 +145,9 @@ The middle navigation item opens the full-screen Activity page.
 - The page resolves the selected child's current recommendation for today.
 - If no child exists, the welcome/add-child state is shown.
 - If no eligible activity exists, an empty explanation is shown; search and creation remain available.
-- The fixed Save button is shown when an activity is selected and hidden otherwise.
-- Save records feedback and returns to Calendar.
+- The fixed action button is shown when an activity is selected and hidden otherwise.
+- For non-skipped statuses, it is Save: it records feedback and returns to Calendar.
+- For the skipped status, it becomes Refresh Activity: it requests another recommendation and does not save feedback.
 - Close discards the unsaved feedback draft and returns to Calendar.
 
 ### 6.2 Activity name and suggestions
@@ -204,17 +205,12 @@ Fields:
 
 The interest and difficulty fields are hidden when the status is `skipped`. The reason field is shown only when the status requires a reason.
 
-Save:
+The fixed action depends on the status:
 
-- stores feedback for the current recommendation;
-- records actual duration;
-- updates the recommendation status;
-- updates inferred preferences;
-- returns to Calendar with today selected.
+- Save for `completed`, `partially_completed` and `not_completed`: stores feedback, actual duration and preference updates, then returns to Calendar with today selected.
+- Refresh Activity for `skipped`: replaces the current recommendation with another suggestion and does not save feedback.
 
-Close returns to Calendar without saving.
-
-Skipped feedback is allowed. The feedback status remains `skipped`; the recommendation status becomes `not_completed`.
+The button icon and accessible label change immediately when the status changes. Close returns to Calendar without saving.
 
 ## 7. Search page
 
@@ -457,7 +453,7 @@ Completed and partially completed count as performed.
 ### 12.3 Recommendation status after saving
 
 - A normal feedback status becomes the recommendation status.
-- Skipped feedback stores `not_completed` on the recommendation.
+- If a skipped feedback record is stored from older or imported data, the recommendation status is `not_completed`.
 
 ### 12.4 Preference updates
 
@@ -649,7 +645,7 @@ The implementation is complete when these checks pass:
 - The daily list shows titles, durations, status and feedback indicators.
 - Skipped and not-completed feedback appears in the daily list without creating markers.
 - Activity suggestions, Search, Add and Refresh work.
-- Feedback saves status, duration and preferences; the default status is skipped.
+- Non-skipped feedback saves status, duration and preferences; the default skipped status shows Refresh Activity instead of Save.
 - Statistics are scoped to the selected child and show frequency, time, areas, consistency, feedback and positive items.
 - Child profiles can be created, edited, switched and deleted.
 - Export, import and deletion work, including custom activities.

@@ -1669,7 +1669,7 @@ activityAdd.onclick = () => {
     createTitle.focus();
 };
 
-activityRefresh.onclick = () => {
+const refreshActivity = () => {
     const child = activeChild();
     if (!child) return;
     if (!todayRec) {
@@ -1680,6 +1680,8 @@ activityRefresh.onclick = () => {
     renderActivity();
 };
 
+activityRefresh.onclick = refreshActivity;
+
 // --- Feedback ---
 
 const renderRating = (input, output, key, values, labels) => {
@@ -1687,6 +1689,12 @@ const renderRating = (input, output, key, values, labels) => {
     input.value = index;
     input.style.setProperty("--value", `${(index / (values.length - 1)) * 100}%`);
     output.textContent = labels[draft[key]];
+};
+
+const renderConfirmAction = () => {
+    const skipped = draft.status === "skipped";
+    activityConfirm.querySelector("use").setAttribute("href", `sprite.svg#${skipped ? "refresh" : "ok"}`);
+    activityConfirm.setAttribute("aria-label", skipped ? S.another : S.save);
 };
 
 const renderFeedbackForm = () => {
@@ -1699,6 +1707,7 @@ const renderFeedbackForm = () => {
     });
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
+    renderConfirmAction();
 };
 
 const bindRating = (input, values, key) => {
@@ -1738,7 +1747,10 @@ const saveFeedbackForm = () => {
     renderPage("calendar");
 };
 
-activityConfirm.onclick = saveFeedbackForm;
+activityConfirm.onclick = () => {
+    if (draft.status === "skipped") refreshActivity();
+    else saveFeedbackForm();
+};
 activityCancel.onclick = closeActivityPage;
 
 // ==========================================================================
