@@ -224,9 +224,11 @@ Layout:
 
 - header row with a back button and search input;
 - horizontally scrollable area filters;
-- age, duration and interest filters;
+- age range input, duration and interest filters;
 - complete list of available activities;
 - empty result state.
+
+The age filter is a single-month range input. On first use, its initial value is the active child's age, and the selected value persists across search-page visits. It filters activities whose recommended age range includes the selected month. Its maximum covers the catalogue, including custom activities with older age ranges.
 
 Behavior:
 

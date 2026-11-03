@@ -921,6 +921,7 @@ nav .active > svg {
 .tabs .tap {
     min-height: 38px;
     padding: 8px 4px;
+    flex-wrap: wrap;
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
