@@ -110,8 +110,10 @@ A diary entry is a recommendation with saved feedback.
 
 - A recommendation without feedback is not a diary entry.
 - The latest feedback for a recommendation is used.
-- The entry date is the feedback date.
+- The entry date is the feedback date, which the user can set explicitly.
 - The entry duration is the feedback's actual `duration`, falling back to the activity's planned duration for old records.
+- The entry time is the feedback's explicit `time`; older records use the feedback creation time.
+- Entries display their time together with the duration and are ordered by time within a day.
 - The daily list includes completed, partially completed, not completed and skipped entries.
 - Clicking an entry opens the Activity page in edit mode for that recommendation and loads its saved feedback.
 - Days without diary entries show a centered empty state.
@@ -163,7 +165,7 @@ If no child exists, the calendar is hidden and the page shows the add-child welc
 The middle navigation item opens the full-screen Activity page. Clicking a Calendar daily entry opens the same page in edit mode for that specific recommendation.
 
 - The bottom navigation is hidden; the selected-child header remains visible.
-- The page resolves the selected child's current recommendation for today.
+- The page resolves the selected child's recommendation for the Calendar selected date.
 - If no child exists, the welcome/add-child state is shown.
 - If no eligible activity exists, an empty explanation is shown; search and creation remain available.
 - The fixed action button is shown when an activity is selected and hidden otherwise.
@@ -181,7 +183,7 @@ The page starts with an activity name input.
 - Suggestions only include activities with `enabled === true` and `safetyReviewed === true`.
 - A clear button empties the name input and suggestions and returns focus to the input.
 - Selecting a suggestion selects that activity for the current child, renders its description and clears the name input.
-- Selecting a different activity for today marks the current pending recommendation as `replaced` when necessary, then creates or reuses a recommendation for the selected activity.
+- Selecting a different activity for the active day marks the current pending recommendation as `replaced` when necessary, then creates or reuses a recommendation for the selected activity.
 
 ### 6.3 Action buttons
 
@@ -219,6 +221,8 @@ The form appears when an activity is selected.
 
 Fields:
 
+- date, defaulting to the recommendation date and chosen with the date/time picker;
+- time of day, defaulting to the current time and chosen with the clock picker;
 - status, defaulting to `skipped`;
 - interest;
 - difficulty;
@@ -230,7 +234,7 @@ The interest and difficulty fields are hidden when the status is `skipped`. The 
 
 The fixed action depends on the status:
 
-- Save for `completed`, `partially_completed` and `not_completed`: stores feedback, actual duration and preference updates, then returns to Calendar with today selected.
+- Save for `completed`, `partially_completed` and `not_completed`: stores feedback, its explicit date and time, actual duration and preference updates, then returns to Calendar with the edited date selected.
 - Refresh Activity for `skipped`: replaces the current recommendation with another suggestion and does not save feedback.
 
 The button icon and accessible label change immediately when the status changes. Close returns to Calendar without saving.
@@ -434,7 +438,7 @@ Recent activities receive repetition penalties over a seven-day window. Novel ac
 ### 11.3 Current recommendation and replacement
 
 - Recommendations are linked to a child and a date.
-- The app uses the last non-replaced recommendation for today.
+- The app uses the last non-replaced recommendation for the requested day.
 - If its activity is still available, it is reused.
 - If it is unavailable or no longer safety-reviewed, a pending recommendation is marked `replaced` and a new one is selected.
 - Refresh replaces a pending recommendation. Finished and not-completed recommendations remain.

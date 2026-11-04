@@ -208,6 +208,14 @@ const STRINGS = {
         feedbackInterest: "Интерес ребенка",
         feedbackDifficulty: "Сложность",
         feedbackReason: "Что помешало",
+        dateLabel: "Дата",
+        timeLabel: "Время",
+        selectDate: "Выбрать дату",
+        selectTime: "Выбрать время",
+        selectHour: "Выбрать часы",
+        selectMinute: "Выбрать минуты",
+        previous: "Назад",
+        next: "Вперед",
         comment: "Комментарий",
         commentPlaceholder: "Необязательно",
         feedbackStatuses: {
@@ -235,6 +243,21 @@ const STRINGS = {
             not_suitable: "Не подходит",
             other: "Другое",
         },
+
+        mons: [
+            "янв",
+            "фев",
+            "мар",
+            "апр",
+            "мая",
+            "июн",
+            "июл",
+            "авг",
+            "сен",
+            "окт",
+            "ноя",
+            "дек",
+        ],
 
         /* --- Statistics --- */
         statsEmpty: "Пока нет завершенных занятий. Запишите первое занятие на вкладке «Занятие».",
@@ -460,9 +483,10 @@ let activityArea = "";
 let ageFilter = null;
 let durationFilter = "0";
 let interestFilters = [];
-let draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
+let draft = {date: "", time: "", status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
 let draftRecId = null;
 let editingRecId = null;
+let activityDate = null;
 
 let childFormNew = false;
 let formGender = "unspecified";
@@ -483,6 +507,13 @@ const pad = (n) => String(n).padStart(2, "0");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 const now = () => new Date().toISOString();
+
+const timeKey = (date = new Date()) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+const timeFromTimestamp = (value) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : timeKey(date);
+};
 
 const clamp = (x, min, max) => Math.min(max, Math.max(min, x));
 
@@ -635,8 +666,28 @@ const activityRefresh = $("activity-refresh");
 const activityNoResult = $("activity-no-result");
 const activityBody = $("activity-body");
 const feedbackForm = $("feedback-form");
+const fbDate = $("fb-date");
+const fbDateValue = $("fb-date-value");
+const fbTime = $("fb-time");
+const fbTimeValue = $("fb-time-value");
 const activityConfirm = $("activity-confirm");
 const activityCancel = $("activity-cancel");
+const timePicker = $("time-picker");
+const clock = $("clock");
+const hand = $("hand");
+const line = $("line");
+const white = $("white");
+const black = $("black");
+const timeDayButton = $("time-day");
+const timeHourButton = $("time-hour");
+const timeMinuteButton = $("time-minute");
+const timeCalendar = $("time-calendar");
+const timeWeekdays = $("time-weekdays");
+const timeDays = $("time-days");
+const timePrev = $("time-prev");
+const timeNext = $("time-next");
+const timeCancel = $("time-cancel");
+const timeApply = $("time-apply");
 
 /* --- Settings --- */
 const exportButton = $("export");
@@ -1237,8 +1288,7 @@ const addRecommendation = (childId, date, activity) => {
 };
 
 // One recommendation per child and day: created once, then kept until the parent asks for another
-const todayRecommendation = (child) => {
-    const date = dateKey();
+const recommendationForDate = (child, date) => {
     const todays = recommendationsOn(child.id, date);
     const current = todays.findLast((r) => r.status !== "replaced");
     if (current && isAvailable(findActivity(current.activityId))) return current;
@@ -1404,12 +1454,13 @@ const diaryEntries = (childId) =>
                 feedback,
                 activity,
                 date: feedback.date ?? rec.date,
+                time: feedback.time || timeFromTimestamp(feedback.createdAt) || "",
                 duration,
                 performed: PERFORMED.includes(feedback.status),
             };
         })
         .filter(Boolean)
-        .sort((a, b) => a.date.localeCompare(b.date) || a.rec.createdAt.localeCompare(b.rec.createdAt));
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.rec.createdAt.localeCompare(b.rec.createdAt));
 
 const areaWeights = (entries) => {
     const weights = {};
@@ -1447,7 +1498,7 @@ const diaryBadge = (text, tone = "") =>
     el("span", {className: `badge diary-badge ${tone}`, textContent: text});
 
 const diaryItem = (entry) => {
-    const {feedback, activity, duration} = entry;
+    const {feedback, activity, duration, time} = entry;
     const status = feedback.status;
     const reason = feedback.reason;
     const item = el(
@@ -1457,7 +1508,7 @@ const diaryItem = (entry) => {
             "div",
             {className: "row between gap-10"},
             el("span", {className: "entry-title", textContent: activity?.title ?? S.unknownActivity}),
-            el("span", {className: "help small", textContent: `${duration} ${S.units.minutes}`}),
+            el("span", {className: "help small", textContent: [time, `${duration} ${S.units.minutes}`].filter(Boolean).join(" · ")}),
         ),
         // el("span", {className: "small", textContent: resultText(entry.rec)}),
         el(
@@ -1679,6 +1730,7 @@ dayEntries.addEventListener("click", (event) => {
     const id = item.dataset.id;
     if (!id) return;
     editingRecId = id;
+    activityDate = selectedDate || dateKey();
     renderPage("activity");
 });
 
@@ -1690,12 +1742,27 @@ const renderFeedbackDuration = () => {
     fbDuration.style.setProperty("--value", `${(value / Number(fbDuration.max)) * 100}%`);
 };
 
+const renderFeedbackTime = () => {
+    fbTimeValue.textContent = draft.time;
+};
+
+const renderFeedbackDate = () => {
+    fbDateValue.textContent = getShortDate(draft.date);
+};
+
 const resetFeedback = (activity) => {
     const saved = todayRec ? feedbackFor(todayRec.id) : null;
     draftRecId = todayRec?.id ?? null;
     draft = saved
-        ? {status: saved.status, interest: saved.interest, difficulty: saved.difficulty, reason: saved.reason}
-        : {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
+        ? {
+              date: saved.date || todayRec.date,
+              time: saved.time || timeFromTimestamp(saved.createdAt) || timeKey(),
+              status: saved.status,
+              interest: saved.interest,
+              difficulty: saved.difficulty,
+              reason: saved.reason,
+          }
+        : {date: todayRec.date, time: timeKey(), status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
     fbComment.value = saved?.comment ?? "";
     const duration = saved?.duration ?? activity?.duration ?? 0;
     fbDuration.max = String(Math.max(60, Math.ceil(Number(duration) || 0)));
@@ -1719,7 +1786,8 @@ const renderActivity = () => {
         ? data.recommendations.find((rec) => rec.id === editingRecId && rec.childId === child.id)
         : null;
     if (editingRecId && !edited) editingRecId = null;
-    todayRec = edited ?? (child && !catalogueError ? todayRecommendation(child) : null);
+    const date = activityDate || selectedDate || dateKey();
+    todayRec = edited ?? (child && !catalogueError ? recommendationForDate(child, date) : null);
     const activity = todayRec ? findActivity(todayRec.activityId) : null;
     if (!activity) {
         todayRec = null;
@@ -1752,7 +1820,7 @@ const chooseActivity = (activity) => {
             if (todayRec && todayRec.childId === child.id && !FINISHED.includes(todayRec.status)) {
                 setStatus(todayRec, "replaced");
             }
-            todayRec = addRecommendation(child.id, dateKey(), activity);
+            todayRec = addRecommendation(child.id, activityDate || todayRec?.date || selectedDate || dateKey(), activity);
         });
     }
     editingRecId = null;
@@ -1813,9 +1881,11 @@ activityAdd.onclick = () => {
 const refreshActivity = () => {
     const child = activeChild();
     if (!child) return;
+    const date = todayRec?.date || activityDate || selectedDate || dateKey();
     editingRecId = null;
+    activityDate = date;
     if (!todayRec) {
-        todayRec = todayRecommendation(child);
+        todayRec = recommendationForDate(child, date);
     } else if (!replaceRecommendation(child, todayRec)) {
         showMessage(S.noAlternative);
     }
@@ -1849,6 +1919,8 @@ const renderFeedbackForm = () => {
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
     resizeComment();
+    renderFeedbackDate();
+    renderFeedbackTime();
 };
 
 const bindRating = (input, values, key) => {
@@ -1866,8 +1938,9 @@ fbComment.addEventListener("input", resizeComment);
 
 const closeActivityPage = () => {
     editingRecId = null;
+    activityDate = null;
     draftRecId = null;
-    draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
+    draft = {date: dateKey(), time: timeKey(), status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
     fbComment.value = "";
     renderPage("calendar");
 };
@@ -1876,8 +1949,10 @@ const saveFeedbackForm = () => {
     if (!todayRec) return;
     const skipped = draft.status === "skipped";
     const duration = Math.max(0, Number(fbDuration.value) || 0);
-    const date = todayRec.date;
+    const date = draft.date || todayRec.date;
     saveFeedback(todayRec, {
+        date,
+        time: draft.time || timeKey(),
         status: draft.status,
         interest: skipped ? "not_observed" : draft.interest,
         difficulty: skipped ? "not_observed" : draft.difficulty,
@@ -1887,6 +1962,7 @@ const saveFeedbackForm = () => {
     });
     const day = parseDate(date);
     editingRecId = null;
+    activityDate = null;
     selectedDate = date;
     calendarMonth = new Date(day.getFullYear(), day.getMonth(), 1);
     renderPage("calendar");
@@ -1894,6 +1970,207 @@ const saveFeedbackForm = () => {
 
 activityConfirm.onclick = saveFeedbackForm;
 activityCancel.onclick = closeActivityPage;
+
+// --- Time picker ---
+
+const CX = 125;
+const CY = 125;
+const R_OUT = 100;
+const R_IN = 70;
+const HAND_RADIUS = 16;
+
+const MINUTE_LABELS = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+const HOUR_LABELS_AM = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+const HOUR_LABELS_PM = ["12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"];
+
+let timeUpdate = null;
+let timeAdd = null;
+let timeDate = new Date();
+let timeMonth = new Date();
+let timeHour = 0;
+let timeMinute = 0;
+
+const getShortDate = (date) => {
+    date = new Date(date);
+    return date.getDate() + ' ' + S.mons[date.getMonth()];
+}
+
+const setTimeDay = () => (timeDayButton.textContent = getShortDate(timeDate));
+const setTimeHour = () => (timeHourButton.textContent = pad(timeHour));
+const setTimeMinute = () => (timeMinuteButton.textContent = pad(timeMinute));
+
+const updateHand = (angle, radius) => {
+    const x = CX + radius * Math.cos(angle);
+    const y = CY + radius * Math.sin(angle);
+    hand.style.left = `${x - HAND_RADIUS}px`;
+    hand.style.top = `${y - HAND_RADIUS}px`;
+    line.style.width = `${radius}px`;
+    line.style.transform = `rotate(${angle}rad)`;
+    white.style.clipPath = `circle(${HAND_RADIUS}px at ${x}px ${y}px)`;
+};
+
+const createTicks = (labels, radius) =>
+    labels
+        .map((label, i) => {
+            const angle = (i / 6 - 0.5) * Math.PI;
+            const x = 50 + radius * Math.cos(angle);
+            const y = 50 + radius * Math.sin(angle);
+            return `<div class="tick" style="left:${x}%;top:${y}%">${label}</div>`;
+        })
+        .join("");
+
+const getMinute = (angle) => (Math.round((30 * angle) / Math.PI) + 75) % 60;
+const getHour = (angle) => (Math.round((6 * angle) / Math.PI) + 15) % 12;
+
+const clockPoint = (event) => {
+    const rect = clock.getBoundingClientRect();
+    return {x: event.clientX - rect.left - CX, y: event.clientY - rect.top - CY};
+};
+
+const updateMinute = (event) => {
+    const {x, y} = clockPoint(event);
+    const angle = Math.atan2(y, x);
+    updateHand(angle, R_OUT);
+    timeMinute = getMinute(angle);
+    setTimeMinute();
+};
+
+const updateHour = (event) => {
+    const {x, y} = clockPoint(event);
+    const angle = Math.atan2(y, x);
+    const pm = 4 * (x * x + y * y) < (R_IN + R_OUT) ** 2;
+    updateHand(angle, pm ? R_IN : R_OUT);
+    timeHour = getHour(angle) + 12 * pm;
+    setTimeHour();
+};
+
+const selectTimePart = (button) =>
+    [timeDayButton, timeHourButton, timeMinuteButton].forEach((part) => part.classList.toggle("selected", part === button));
+
+const toMinute = () => {
+    clock.classList.remove("hidden");
+    timeCalendar.classList.add("hidden");
+    white.innerHTML = black.innerHTML = createTicks(MINUTE_LABELS, 40);
+    updateHand((timeMinute / 30 - 0.5) * Math.PI, R_OUT);
+    timeUpdate = updateMinute;
+    timeAdd = addTimeMinute;
+    selectTimePart(timeMinuteButton);
+};
+
+const toHour = () => {
+    clock.classList.remove("hidden");
+    timeCalendar.classList.add("hidden");
+    white.innerHTML = black.innerHTML = createTicks(HOUR_LABELS_AM, 40) + createTicks(HOUR_LABELS_PM, 28);
+    updateHand((timeHour / 6 - 0.5) * Math.PI, timeHour >= 12 ? R_IN : R_OUT);
+    timeUpdate = updateHour;
+    timeAdd = addTimeHour;
+    selectTimePart(timeHourButton);
+};
+
+const addTimeMonth = (delta) => {
+    timeMonth.setMonth(timeMonth.getMonth() + delta);
+    renderTimeCalendar();
+};
+
+const toDay = () => {
+    clock.classList.add("hidden");
+    timeCalendar.classList.remove("hidden");
+    timeMonth = new Date(timeDate.getFullYear(), timeDate.getMonth(), 1);
+    timeUpdate = null;
+    timeAdd = addTimeMonth;
+    selectTimePart(timeDayButton);
+    renderTimeCalendar();
+};
+
+const renderTimeCalendar = () => {
+    const year = timeMonth.getFullYear();
+    const month = timeMonth.getMonth();
+    const first = (new Date(year, month, 1).getDay() + 6) % 7;
+    const last = new Date(year, month + 1, 0).getDate();
+    const selected = dateKey(timeDate);
+    const today = dateKey();
+
+    timeWeekdays.replaceChildren(...S.weekdaysShort.map((weekday) => el("span", {textContent: weekday})));
+    const days = [];
+    for (let i = 0; i < first; i++) days.push(el("span", {className: "calendar-empty"}));
+    for (let day = 1; day <= last; day++) {
+        const date = dateKey(new Date(year, month, day));
+        const type = date === selected ? "selected" : date === today ? "today" : date > today ? "future" : "";
+        const button = el("button", {type: "button", className: type}, el("span", {textContent: String(day)}));
+        button.onclick = () => {
+            timeDate = new Date(year, month, day);
+            setTimeDay();
+            toHour();
+        };
+        days.push(button);
+    }
+    timeDays.replaceChildren(...days);
+};
+
+const openTimePicker = (to) => {
+    const [hour, minute] = (draft.time || timeKey()).split(":").map(Number);
+    timeDate = parseDate(draft.date || todayRec.date);
+    timeMonth = new Date(timeDate.getFullYear(), timeDate.getMonth(), 1);
+    timeHour = clamp(Number(hour) || 0, 0, 23);
+    timeMinute = clamp(Number(minute) || 0, 0, 59);
+
+    setTimeDay();
+    setTimeHour();
+    setTimeMinute();
+    (to ?? toHour)();
+    openSheet(timePicker);
+};
+
+const applyTimePicker = () => {
+    draft.date = dateKey(timeDate);
+    draft.time = `${pad(timeHour)}:${pad(timeMinute)}`;
+    renderFeedbackDate();
+    renderFeedbackTime();
+    closeSheet();
+};
+
+const addTimeMinute = (delta) => {
+    timeMinute = (timeMinute + 60 + delta) % 60;
+    updateHand((timeMinute / 30 - 0.5) * Math.PI, R_OUT);
+    setTimeMinute();
+};
+
+const addTimeHour = (delta) => {
+    timeHour = (timeHour + 24 + delta) % 24;
+    updateHand((timeHour / 6 - 0.5) * Math.PI, timeHour >= 12 ? R_IN : R_OUT);
+    setTimeHour();
+};
+
+timeDayButton.onclick = toDay;
+timeHourButton.onclick = toHour;
+timeMinuteButton.onclick = toMinute;
+
+clock.addEventListener("pointerdown", (event) => {
+    hand.setPointerCapture(event.pointerId);
+    timeUpdate(event);
+});
+
+clock.addEventListener("pointermove", (event) => {
+    if (hand.hasPointerCapture(event.pointerId)) timeUpdate(event);
+});
+
+clock.addEventListener("pointerup", (event) => {
+    if (!hand.hasPointerCapture(event.pointerId)) return;
+    timeUpdate(event);
+    hand.releasePointerCapture(event.pointerId);
+    if (timeUpdate === updateHour) toMinute();
+});
+
+clock.addEventListener("pointercancel", (event) => {
+    if (hand.hasPointerCapture(event.pointerId)) hand.releasePointerCapture(event.pointerId);
+});
+
+timePrev.onclick = () => timeAdd(-1);
+timeNext.onclick = () => timeAdd(1);
+timeCancel.onclick = closeSheet;
+timeApply.onclick = applyTimePicker;
+fbDate.onclick = () => openTimePicker(toDay);
+fbTime.onclick = () => openTimePicker(toHour);
 
 // ==========================================================================
 // 15. ACTIVITY DETAILS
@@ -2857,7 +3134,10 @@ const renderPage = (name) => {
 nav.onclick = (event) => {
     const button = event.target.closest("button");
     if (!button?.dataset.page) return;
-    if (button.dataset.page === "activity") editingRecId = null;
+    if (button.dataset.page === "activity") {
+        editingRecId = null;
+        activityDate = selectedDate || dateKey();
+    }
     renderPage(button.dataset.page);
 };
 

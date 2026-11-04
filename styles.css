@@ -302,7 +302,7 @@ h3 {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 100%;
+    /*width: 100%;*/
 }
 
 .between {
@@ -1092,6 +1092,116 @@ nav .active > svg {
     border-radius: 0;
 }
 
+#time-picker {
+    max-height: 375px;
+    min-height: 375px;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+}
+
+#time-calendar {
+    width: 100%;
+    max-width: 420px;
+}
+
+#time-picker .days > button {
+    height: 40px;
+    font-size: 14px;
+}
+
+#time-picker footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto;
+    position: absolute;
+    bottom: 0;
+}
+
+#time-picker footer button {
+    min-height: 44px;
+    padding: 10px 16px;
+}
+
+#watch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 6px;
+}
+
+#watch button {
+    font-size: 24px;
+    line-height: 1;
+    min-height: 44px;
+}
+
+#watch .selected {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+#clock {
+    position: relative;
+    flex: 0 0 250px;
+    width: 250px;
+    height: 250px;
+    background: var(--fade);
+    border-radius: 50%;
+    touch-action: none;
+}
+
+#clock .tick {
+    position: absolute;
+    font: 14px sans-serif;
+    transform: translate(-50%, -50%);
+}
+
+#white {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    clip-path: circle(16px at 50% 50%);
+    pointer-events: none;
+}
+
+#white .tick {
+    color: var(--bg);
+}
+
+#hand {
+    position: absolute;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: grab;
+    touch-action: none;
+}
+
+#center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    transform: translate(-50%, -50%);
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+#line {
+    position: absolute;
+    left: 50%;
+    top: calc(50% - 1px);
+    width: 2px;
+    height: 2px;
+    background: var(--accent);
+    transform-origin: 0 50%;
+}
+
 #feedback-form {
     padding-top: 20px;
 }
@@ -1319,7 +1429,7 @@ nav .active > svg {
 }
 
 .days > span {
-    padding-bottom: 10px;
+    font-size: 12px;
     color: gray;
 }
 
