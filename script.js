@@ -1734,12 +1734,6 @@ const renderRating = (input, output, key, values, labels) => {
     output.textContent = labels[draft[key]];
 };
 
-const renderConfirmAction = () => {
-    const skipped = draft.status === "skipped";
-    activityConfirm.querySelector("use").setAttribute("href", `sprite.svg#${skipped ? "refresh" : "ok"}`);
-    activityConfirm.setAttribute("aria-label", skipped ? S.another : S.save);
-};
-
 const renderFeedbackForm = () => {
     renderRating(fbStatus, fbStatusValue, "status", FEEDBACK_STATUSES, S.feedbackStatuses);
     renderRating(fbInterest, fbInterestValue, "interest", FEEDBACK_INTERESTS, S.interestFeedback);
@@ -1750,7 +1744,6 @@ const renderFeedbackForm = () => {
     });
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
-    renderConfirmAction();
 };
 
 const bindRating = (input, values, key) => {
