@@ -619,6 +619,7 @@ const childNames = $("child-names");
 const calendarWelcome = $("calendar-welcome");
 const calendarMain = $("calendar-main");
 const calendarEl = $("calendar");
+const calendars = $("calendars");
 const chosenDay = $("chosen-day");
 const dayEntries = $("day-entries");
 
@@ -1484,13 +1485,7 @@ const AREA_BACKGROUND = {
     social_emotional: "var(--sky)",
 };
 
-const renderCalendar = () => {
-    if (!selectedDate) selectedDate = dateKey();
-    const child = activeChild();
-    calendarWelcome.classList.toggle("hidden", !!child);
-    calendarMain.classList.toggle("hidden", !child);
-    if (!child) return;
-
+const calendarData = (child) => {
     const entries = diaryEntries(child.id);
     const byDate = new Map();
     entries.forEach((entry) => {
@@ -1504,32 +1499,28 @@ const renderCalendar = () => {
         list.push(entry);
         performedByDate.set(entry.date, list);
     });
+    return {byDate, performedByDate};
+};
 
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
+const getCalendarPage = (delta, data) => {
+    const monthDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
     const offset = (new Date(year, month, 1).getDay() + 6) % 7;
-    const monthStats = [...performedByDate.entries()].filter(([date]) => monthKey(date) === `${year}-${pad(month + 1)}`);
+    const monthStats = [...data.performedByDate.entries()].filter(([date]) => monthKey(date) === `${year}-${pad(month + 1)}`);
     const maxTotal = Math.max(1, ...monthStats.map(([, list]) => list.reduce((sum, entry) => sum + entry.duration, 0)));
     const today = dateKey();
 
-    const previous = el(
-        "button",
-        {type: "button", className: "prev", onclick: () => shiftCalendarMonth(-1)},
-        icon("prev"),
-    );
+    const previous = el("button", {type: "button", className: "prev"}, icon("prev"));
     previous.setAttribute("aria-label", S.previousMonth);
-    const next = el(
-        "button",
-        {type: "button", className: "next", onclick: () => shiftCalendarMonth(1)},
-        icon("next"),
-    );
+    const next = el("button", {type: "button", className: "next"}, icon("next"));
     next.setAttribute("aria-label", S.nextMonth);
     const heading = el(
         "h2",
         {className: "row"},
         previous,
-        el("span", {className: "big", textContent: capitalize(formatDate(dateKey(calendarMonth), {month: "long", year: "numeric"}))}),
+        el("span", {className: "big", textContent: capitalize(formatDate(dateKey(monthDate), {month: "long", year: "numeric"}))}),
         next,
     );
 
@@ -1539,8 +1530,8 @@ const renderCalendar = () => {
 
     for (let day = 1; day <= days; day++) {
         const date = dateKey(new Date(year, month, day));
-        const dayEntriesForDate = byDate.get(date) ?? [];
-        const performed = performedByDate.get(date) ?? [];
+        const dayEntriesForDate = data.byDate.get(date) ?? [];
+        const performed = data.performedByDate.get(date) ?? [];
         const total = performed.reduce((sum, entry) => sum + entry.duration, 0);
         const area = dominantArea(performed);
         const markerSize = performed.length ? Math.round(16 + 20 * (total / maxTotal)) : 0;
@@ -1550,20 +1541,14 @@ const renderCalendar = () => {
         });
         const button = el(
             "button",
-            {
-                type: "button",
-                className: date === selectedDate ? "selected" : "",
-                onclick: () => {
-                    selectedDate = date;
-                    renderCalendar();
-                },
-            },
+            {type: "button", className: date === selectedDate ? "selected" : ""},
             number,
             area &&
                 el("i", {
                     style: `width:${markerSize}px;height:${markerSize}px;background:${AREA_BACKGROUND[area]}`,
                 }),
         );
+        button.dataset.date = date;
         button.setAttribute(
             "aria-label",
             `${formatDate(date, {day: "numeric", month: "long"})}: ${S.calendarDay(performed.length, total)}`,
@@ -1572,16 +1557,121 @@ const renderCalendar = () => {
         grid.append(button);
     }
 
-    calendarEl.replaceChildren(el("div", {className: "calendar"}, heading, grid));
+    return el("div", {className: "calendar"}, heading, grid);
+};
 
+const renderCalendarDay = (data) => {
     chosenDay.textContent = capitalize(formatDate(selectedDate, {weekday: "long", day: "numeric", month: "long"}));
-    const selectedEntries = byDate.get(selectedDate) ?? [];
+    const selectedEntries = data.byDate.get(selectedDate) ?? [];
     dayEntries.replaceChildren(
         ...(selectedEntries.length
             ? selectedEntries.map(diaryItem)
             : [el("div", {className: "small help center pad-20", textContent: S.calendarEmpty})]),
     );
 };
+
+const renderCalendar = () => {
+    if (!selectedDate) selectedDate = dateKey();
+    const child = activeChild();
+    calendarWelcome.classList.toggle("hidden", !!child);
+    calendarMain.classList.toggle("hidden", !child);
+    if (!child) return;
+
+    const data = calendarData(child);
+    calendarEl.replaceChildren(getCalendarPage(0, data));
+    renderCalendarDay(data);
+};
+
+const addPageMonth = (delta) => {
+    const month = calendarMonth.getMonth() + delta;
+    const year = calendarMonth.getFullYear();
+    const m = (month + 12) % 12;
+    const y = year + delta * (month !== m);
+    calendarMonth = new Date(y, m, 1);
+};
+
+calendarEl.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    if (button.classList.contains("prev") || button.classList.contains("next")) {
+        addPageMonth(button.classList.contains("prev") ? -1 : 1);
+        renderCalendar();
+        return;
+    }
+    if (button.dataset.date) {
+        selectedDate = button.dataset.date;
+        renderCalendar();
+    }
+});
+
+// --- Swipe between months ---
+
+let startX = null;
+let dragging = false;
+let shift = 0;
+let delta = 0;
+let width = 0;
+
+const MIN_SHIFT = 10;
+const MAX_SHIFT = 40;
+
+const renderCalendars = () => {
+    const child = activeChild();
+    if (!child) return;
+    const data = calendarData(child);
+    width = calendarEl.clientWidth + 30;
+    calendars.style.setProperty("--width", `${calendarEl.clientWidth}px`);
+    calendars.replaceChildren(getCalendarPage(-1, data), getCalendarPage(0, data), getCalendarPage(1, data));
+    calendarEl.replaceChildren(calendars);
+    calendars.style.transition = "none";
+    calendars.style.transform = `translateX(-${width}px)`;
+};
+
+calendars.addEventListener("transitionend", () => {
+    addPageMonth(delta);
+    renderCalendar();
+});
+
+calendarEl.addEventListener("pointerdown", (event) => {
+    startX = event.clientX;
+    delta = 0;
+    dragging = false;
+});
+
+calendarEl.addEventListener("pointermove", (event) => {
+    if (startX === null) return;
+
+    shift = event.clientX - startX;
+
+    if (!dragging) {
+        if (Math.abs(shift) < MIN_SHIFT) return;
+        dragging = true;
+
+        delta = shift > 0 ? -1 : 1;
+        startX -= delta * MIN_SHIFT;
+        shift += delta * MIN_SHIFT;
+
+        renderCalendars();
+        calendarEl.setPointerCapture(event.pointerId);
+    }
+    calendars.style.transform = `translateX(${shift - width}px)`;
+});
+
+const stopDragging = () => {
+    if (startX === null) return;
+    startX = null;
+
+    if (!dragging) return;
+    dragging = false;
+
+    delta = Math.abs(shift) > MAX_SHIFT ? (shift > 0 ? -1 : 1) : 0;
+
+    calendars.style.transition = "transform 0.2s ease";
+    calendars.style.transform = `translateX(-${width + delta * width}px)`;
+};
+
+calendarEl.addEventListener("pointerup", stopDragging);
+calendarEl.addEventListener("pointercancel", stopDragging);
 
 dayEntries.addEventListener("click", (event) => {
     const item = event.target.closest(".entry");
@@ -1591,16 +1681,6 @@ dayEntries.addEventListener("click", (event) => {
     editingRecId = id;
     renderPage("activity");
 });
-
-const shiftCalendarMonth = (delta) => {
-    const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
-    calendarMonth = next;
-    const nextMonth = `${next.getFullYear()}-${pad(next.getMonth() + 1)}`;
-    if (monthKey(selectedDate) !== nextMonth) {
-        selectedDate = monthKey(dateKey()) === nextMonth ? dateKey() : dateKey(next);
-    }
-    renderCalendar();
-};
 
 // --- Activity ---
 

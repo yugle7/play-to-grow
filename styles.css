@@ -1284,6 +1284,22 @@ nav .active > svg {
     position: relative;
 }
 
+#calendars {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    width: calc(300% + 60px);
+    overflow-x: clip;
+    overflow-y: visible;
+    touch-action: pan-y;
+    transition: none;
+}
+
+#calendars > div {
+    flex: 0 0 var(--width);
+    width: var(--width);
+}
+
 .calendar h2 button {
     padding: 10px;
 }

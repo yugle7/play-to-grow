@@ -95,13 +95,14 @@ Calendar is the first page displayed on launch.
 The page uses the existing calendar structure:
 
 - month heading with previous and next month buttons;
+- horizontal swipe paging with a three-page transition;
 - weekday headers from Monday to Sunday;
 - day buttons in a seven-column grid;
 - selected day with a highlighted background and larger number;
 - selected date heading;
 - daily activity list below the calendar.
 
-The selected date defaults to today. Selecting a day updates the date heading and daily list without changing the month.
+The selected date defaults to today. Selecting a day updates the date heading and daily list without changing the month. Paging the calendar changes only the displayed month; the selected date changes when a day is tapped. Swipe paging shows the previous, current and next months during the gesture and commits the month after the transition.
 
 ### 5.2 Diary entries
 
