@@ -222,7 +222,7 @@ Fields:
 - difficulty;
 - actual duration as a range input in minutes, defaulting to the planned duration;
 - reason;
-- optional comment.
+- optional comment, in a textarea that auto-resizes to its content and has no manual resize handle.
 
 The interest and difficulty fields are hidden when the status is `skipped`. The reason field is shown only when the status requires a reason.
 

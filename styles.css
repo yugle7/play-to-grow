@@ -1096,6 +1096,11 @@ nav .active > svg {
     padding-top: 20px;
 }
 
+#fb-comment {
+    resize: none;
+    overflow-y: hidden;
+}
+
 #feedback-form .field > label.row {
     flex-wrap: wrap;
 }

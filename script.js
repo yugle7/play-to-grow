@@ -1734,6 +1734,11 @@ const renderRating = (input, output, key, values, labels) => {
     output.textContent = labels[draft[key]];
 };
 
+const resizeComment = () => {
+    fbComment.style.height = "auto";
+    fbComment.style.height = `${fbComment.scrollHeight}px`;
+};
+
 const renderFeedbackForm = () => {
     renderRating(fbStatus, fbStatusValue, "status", FEEDBACK_STATUSES, S.feedbackStatuses);
     renderRating(fbInterest, fbInterestValue, "interest", FEEDBACK_INTERESTS, S.interestFeedback);
@@ -1744,6 +1749,7 @@ const renderFeedbackForm = () => {
     });
     fbObserved.classList.toggle("hidden", draft.status === "skipped");
     fbReasonField.classList.toggle("hidden", !NEEDS_REASON.includes(draft.status));
+    resizeComment();
 };
 
 const bindRating = (input, values, key) => {
@@ -1757,6 +1763,7 @@ bindRating(fbStatus, FEEDBACK_STATUSES, "status");
 bindRating(fbInterest, FEEDBACK_INTERESTS, "interest");
 bindRating(fbDifficulty, FEEDBACK_DIFFICULTIES, "difficulty");
 fbDuration.addEventListener("input", renderFeedbackDuration);
+fbComment.addEventListener("input", resizeComment);
 
 const closeActivityPage = () => {
     draftRecId = null;
@@ -1783,10 +1790,7 @@ const saveFeedbackForm = () => {
     renderPage("calendar");
 };
 
-activityConfirm.onclick = () => {
-    if (draft.status === "skipped") refreshActivity();
-    else saveFeedbackForm();
-};
+activityConfirm.onclick = saveFeedbackForm;
 activityCancel.onclick = closeActivityPage;
 
 // ==========================================================================
