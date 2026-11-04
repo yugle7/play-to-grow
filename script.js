@@ -462,6 +462,7 @@ let durationFilter = "0";
 let interestFilters = [];
 let draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
 let draftRecId = null;
+let editingRecId = null;
 
 let childFormNew = false;
 let formGender = "unspecified";
@@ -1448,7 +1449,7 @@ const diaryItem = (entry) => {
     const {feedback, activity, duration} = entry;
     const status = feedback.status;
     const reason = feedback.reason;
-    return el(
+    const item = el(
         "div",
         {className: "entry"},
         el(
@@ -1468,6 +1469,8 @@ const diaryItem = (entry) => {
         ),
         feedback.comment && el("span", {className: "help small entry-quote", textContent: `«${feedback.comment}»`}),
     );
+    item.dataset.id = entry.rec.id;
+    return item;
 };
 
 const monthKey = (date) => date.slice(0, 7);
@@ -1580,6 +1583,15 @@ const renderCalendar = () => {
     );
 };
 
+dayEntries.addEventListener("click", (event) => {
+    const item = event.target.closest(".entry");
+    if (!item || !dayEntries.contains(item)) return;
+    const id = item.dataset.id;
+    if (!id) return;
+    editingRecId = id;
+    renderPage("activity");
+});
+
 const shiftCalendarMonth = (delta) => {
     const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
     calendarMonth = next;
@@ -1623,10 +1635,15 @@ const renderActivity = () => {
         return;
     }
 
-    todayRec = child && !catalogueError ? todayRecommendation(child) : null;
+    const edited = editingRecId
+        ? data.recommendations.find((rec) => rec.id === editingRecId && rec.childId === child.id)
+        : null;
+    if (editingRecId && !edited) editingRecId = null;
+    todayRec = edited ?? (child && !catalogueError ? todayRecommendation(child) : null);
     const activity = todayRec ? findActivity(todayRec.activityId) : null;
     if (!activity) {
         todayRec = null;
+        editingRecId = null;
         draftRecId = null;
         activityName.value = "";
         activityNameClear.classList.add("hidden");
@@ -1658,6 +1675,7 @@ const chooseActivity = (activity) => {
             todayRec = addRecommendation(child.id, dateKey(), activity);
         });
     }
+    editingRecId = null;
     activityName.value = "";
     activityNameClear.classList.add("hidden");
     renderPage("activity");
@@ -1715,6 +1733,7 @@ activityAdd.onclick = () => {
 const refreshActivity = () => {
     const child = activeChild();
     if (!child) return;
+    editingRecId = null;
     if (!todayRec) {
         todayRec = todayRecommendation(child);
     } else if (!replaceRecommendation(child, todayRec)) {
@@ -1766,6 +1785,7 @@ fbDuration.addEventListener("input", renderFeedbackDuration);
 fbComment.addEventListener("input", resizeComment);
 
 const closeActivityPage = () => {
+    editingRecId = null;
     draftRecId = null;
     draft = {status: "skipped", interest: "not_observed", difficulty: "not_observed", reason: null};
     fbComment.value = "";
@@ -1774,9 +1794,9 @@ const closeActivityPage = () => {
 
 const saveFeedbackForm = () => {
     if (!todayRec) return;
-    const activity = findActivity(todayRec.activityId);
     const skipped = draft.status === "skipped";
     const duration = Math.max(0, Number(fbDuration.value) || 0);
+    const date = todayRec.date;
     saveFeedback(todayRec, {
         status: draft.status,
         interest: skipped ? "not_observed" : draft.interest,
@@ -1785,8 +1805,10 @@ const saveFeedbackForm = () => {
         duration,
         comment: fbComment.value.trim() || null,
     });
-    selectedDate = dateKey();
-    calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const day = parseDate(date);
+    editingRecId = null;
+    selectedDate = date;
+    calendarMonth = new Date(day.getFullYear(), day.getMonth(), 1);
     renderPage("calendar");
 };
 
@@ -2754,7 +2776,9 @@ const renderPage = (name) => {
 
 nav.onclick = (event) => {
     const button = event.target.closest("button");
-    if (button?.dataset.page) renderPage(button.dataset.page);
+    if (!button?.dataset.page) return;
+    if (button.dataset.page === "activity") editingRecId = null;
+    renderPage(button.dataset.page);
 };
 
 // ==========================================================================

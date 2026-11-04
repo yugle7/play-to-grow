@@ -112,6 +112,7 @@ A diary entry is a recommendation with saved feedback.
 - The entry date is the feedback date.
 - The entry duration is the feedback's actual `duration`, falling back to the activity's planned duration for old records.
 - The daily list includes completed, partially completed, not completed and skipped entries.
+- Clicking an entry opens the Activity page in edit mode for that recommendation and loads its saved feedback.
 - Days without diary entries show a centered empty state.
 
 ### 5.3 Day markers
@@ -158,7 +159,7 @@ If no child exists, the calendar is hidden and the page shows the add-child welc
 
 ### 6.1 Opening, saving and closing
 
-The middle navigation item opens the full-screen Activity page.
+The middle navigation item opens the full-screen Activity page. Clicking a Calendar daily entry opens the same page in edit mode for that specific recommendation.
 
 - The bottom navigation is hidden; the selected-child header remains visible.
 - The page resolves the selected child's current recommendation for today.
