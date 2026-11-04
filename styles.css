@@ -669,9 +669,9 @@ details[open] summary .minus {
 }
 
 .badge {
-    padding: 1px 8px;
-    border-radius: 6px;
-    background: var(--fade);
+    /*padding: 1px 8px;*/
+    /*border-radius: 6px;*/
+    /*background: var(--fade);*/
     color: var(--help);
     font-size: 13px;
     font-weight: 400;
@@ -1358,6 +1358,7 @@ nav .active > svg {
 #day-entries {
     display: flex;
     flex-direction: column;
+    padding: 20px;
 }
 
 .diary-chips {
@@ -1365,23 +1366,23 @@ nav .active > svg {
 }
 
 .diary-badge {
-    padding: 1px 7px;
+    /*padding: 1px 7px;*/
     font-size: 12px;
 }
 
 .diary-badge.good {
     color: var(--green);
-    background: color-mix(in srgb, var(--green) 14%, transparent);
+    /*background: color-mix(in srgb, var(--green) 14%, transparent);*/
 }
 
 .diary-badge.bad {
     color: var(--red);
-    background: color-mix(in srgb, var(--red) 14%, transparent);
+    /*background: color-mix(in srgb, var(--red) 14%, transparent);*/
 }
 
 .diary-badge.warn {
-    color: var(--warning-heading);
-    background: var(--warning-bg);
+    color: var(--yellow);
+    /*background: var(--warning-bg);*/
 }
 
 #activity-name {

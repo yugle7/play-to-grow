@@ -111,9 +111,9 @@ const DIFFICULTY_LEVEL = {easy: 0, medium: 1, challenging: 2};
 
 const FINISHED = ["completed", "partially_completed", "not_completed"];
 
-const FEEDBACK_STATUSES = ["completed", "partially_completed", "not_completed", "skipped"];
-const FEEDBACK_INTERESTS = ["liked", "neutral", "disliked", "not_observed"];
-const FEEDBACK_DIFFICULTIES = ["too_easy", "appropriate", "too_hard", "not_observed"];
+const FEEDBACK_STATUSES = ["skipped", "not_completed", "partially_completed", "completed"];
+const FEEDBACK_INTERESTS = ["not_observed", "disliked", "neutral", "liked"];
+const FEEDBACK_DIFFICULTIES = ["not_observed", "too_easy", "appropriate", "too_hard"];
 const REASONS = ["no_time", "no_materials", "child_not_in_mood", "not_suitable", "other"];
 const NEEDS_REASON = ["not_completed", "skipped"];
 
@@ -632,7 +632,6 @@ const activityAdd = $("activity-add");
 const activityRefresh = $("activity-refresh");
 const activityNoResult = $("activity-no-result");
 const activityBody = $("activity-body");
-const activityStatus = $("activity-status");
 const feedbackForm = $("feedback-form");
 const activityConfirm = $("activity-confirm");
 const activityCancel = $("activity-cancel");
@@ -1458,7 +1457,7 @@ const diaryItem = (entry) => {
             el("span", {className: "entry-title", textContent: activity?.title ?? S.unknownActivity}),
             el("span", {className: "help small", textContent: `${duration} ${S.units.minutes}`}),
         ),
-        el("span", {className: "small", textContent: resultText(entry.rec)}),
+        // el("span", {className: "small", textContent: resultText(entry.rec)}),
         el(
             "div",
             {className: "chips diary-chips"},
@@ -1632,7 +1631,6 @@ const renderActivity = () => {
         activityName.value = "";
         activityNameClear.classList.add("hidden");
         activityBody.replaceChildren();
-        activityStatus.classList.add("hidden");
         activityNoResult.textContent = catalogueError ? S.catalogueError : emptyReason(child);
         activityNoResult.classList.remove("hidden");
         feedbackForm.classList.add("hidden");
@@ -1644,9 +1642,6 @@ const renderActivity = () => {
     activityNameClear.classList.toggle("hidden", !activityName.value);
     activityNoResult.classList.add("hidden");
     activityBody.replaceChildren(...activityContent(activity, true));
-    const feedback = feedbackFor(todayRec.id);
-    activityStatus.textContent = feedback ? resultText(todayRec) : "";
-    activityStatus.classList.toggle("hidden", !feedback);
     feedbackForm.classList.remove("hidden");
     activityConfirm.classList.remove("hidden");
     renderFeedbackForm();
