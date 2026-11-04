@@ -1508,7 +1508,7 @@ const diaryItem = (entry) => {
             "div",
             {className: "row between gap-10"},
             el("span", {className: "entry-title", textContent: activity?.title ?? S.unknownActivity}),
-            el("span", {className: "help small", textContent: [time, `${duration} ${S.units.minutes}`].filter(Boolean).join(" · ")}),
+            el("span", {className: "help small", textContent: `${duration} ${S.units.minutes}`}),
         ),
         // el("span", {className: "small", textContent: resultText(entry.rec)}),
         el(
