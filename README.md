@@ -157,7 +157,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 ### Bottom Sheets and Confirmation Dialog
 
-The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`.
+The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`. Version 1 child weights are converted from kilograms to grams.
 
 The option picker is a `.sheet` element displayed over the `#overlay` backdrop, opened and closed using `openSheet()` / `closeSheet()`. Activity, activity search, and activity creation are full-screen pages using the shared `scroll` / `width-500` / `pad-20` page structure. Activity and New Activity use `cta-space` with fixed action buttons. They are switched with `renderPage()`.
 
@@ -188,7 +188,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
 
 ```
 {
-    version: 1,             // data format version
+    version: 2,             // data format version
     children: [],           // child profiles
     activeChildId: "...",   // currently selected child
     recommendations: [],    // all suggested activities
@@ -208,7 +208,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     name: "Anya",
     birthDate: "2026-05-21",          // calendar date, no time
     dueDate: "2026-05-21",            // estimated due date, optional, null
-    weight: 7.5,                     // kg, optional, one decimal
+    weight: 7500,                    // grams, optional, integer
     gender: "boy",                   // girl | boy; defaults to boy
     createdAt: "2026-10-30T10:00:00.000Z",
     updatedAt: "2026-10-30T10:05:00.000Z",
@@ -479,7 +479,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"58"` → `"59"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"59"` → `"60"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 

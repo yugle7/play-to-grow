@@ -374,7 +374,7 @@ Each child has:
 - `name`;
 - `birthDate`;
 - optional `dueDate`;
-- optional `weight` in kg, one decimal;
+- optional `weight` in grams, integer;
 - `gender`: `girl` or `boy`, defaulting to `boy`;
 - `createdAt`;
 - `updatedAt`;
@@ -383,7 +383,7 @@ Each child has:
 
 Age is always calculated from `birthDate`; it is never stored permanently.
 
-Gender and weight are shown side by side. Gender uses the two-option segment; weight uses the unit-field pattern with a kg suffix and saves on blur.
+Gender and weight are shown side by side. Gender uses the two-option segment; weight uses the unit-field pattern with a gram suffix and saves on blur.
 
 ### 10.1 Skills
 
@@ -527,12 +527,12 @@ Completed and partially completed count as performed.
 
 ```js
 const STORAGE_KEY = "childActivityPlanner";
-const DATA_VERSION = 1;
+const DATA_VERSION = 2;
 ```
 
 ```js
 {
-    version: 1,
+    version: 2,
     children: [],
     activeChildId: null,
     recommendations: [],
@@ -546,7 +546,7 @@ const DATA_VERSION = 1;
 
 `activities` stores custom activities only. The base catalogue stays in `data/activities.json`.
 
-Older exports without `activities` remain valid. Unreadable local data is preserved under a timestamped backup key and is never silently overwritten.
+Older exports without `activities` remain valid. Version 1 data is migrated by converting child weights from kilograms to grams. Unreadable local data is preserved under a timestamped backup key and is never silently overwritten.
 
 ### 13.2 Child
 

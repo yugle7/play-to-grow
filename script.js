@@ -3,7 +3,7 @@
 // ==========================================================================
 
 const STORAGE_KEY = "childActivityPlanner";
-const DATA_VERSION = 1;
+const DATA_VERSION = 2;
 const CATALOGUE_URL = "data/activities.json";
 const LANG = "ru";
 
@@ -329,7 +329,7 @@ const STRINGS = {
         gender: "Пол",
         genders: {girl: "Девочка", boy: "Мальчик"},
         weightLabel: "Вес",
-        weightUnit: "кг",
+        weightUnit: "г",
         deleteChild: "Удалить профиль",
         deleteChildQuestion: (name) =>
             `Удалить профиль «${name}» вместе с историей занятий? Это действие нельзя отменить.`,
@@ -854,6 +854,17 @@ const translatePage = () => {
 // 7. STORAGE
 // ==========================================================================
 
+const migrateDataVersion = (value) => {
+    if (value.version !== 1) return false;
+    if (Array.isArray(value.children)) {
+        value.children.forEach((child) => {
+            if (Number.isFinite(child.weight)) child.weight = Math.round(child.weight * 1000);
+        });
+    }
+    value.version = DATA_VERSION;
+    return true;
+};
+
 const emptyData = () => ({
     version: DATA_VERSION,
     children: [],
@@ -873,8 +884,8 @@ const loadData = () => {
         data = {...emptyData(), ...JSON.parse(raw)};
         if (!Array.isArray(data.activities)) data.activities = [];
         if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+        let migrated = migrateDataVersion(data);
         if (Array.isArray(data.children)) {
-            let migrated = false;
             data.children.forEach((child) => {
                 const gender = normalizeChildGender(child.gender);
                 if (child.gender !== gender) {
@@ -882,8 +893,8 @@ const loadData = () => {
                     migrated = true;
                 }
             });
-            if (migrated) saveData();
         }
+        if (migrated) saveData();
     } catch {
         // keep unreadable data aside instead of overwriting it
         localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
@@ -924,6 +935,7 @@ const importData = (imported) => {
     data = {...emptyData(), ...imported};
     if (!Array.isArray(data.activities)) data.activities = [];
     if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+    migrateDataVersion(data);
     data.children.forEach((child) => (child.gender = normalizeChildGender(child.gender)));
     if (!activeChild()) data.activeChildId = data.children[0]?.id ?? null;
     refreshCatalogue();
@@ -2732,7 +2744,7 @@ const renderChild = () => {
     duedate.set(formChild?.dueDate);
     formGender = formChild ? normalizeChildGender(formChild.gender) : "boy";
     setSegment(childGender, formGender, "gender");
-    childWeightInput.value = formChild?.weight == null ? "" : formatLogValue(formChild.weight, 1);
+    childWeightInput.value = formChild?.weight == null ? "" : formatLogValue(formChild.weight, 0);
     childCancel.classList.toggle("hidden", !childFormNew);
 
     childDetails.classList.toggle("hidden", childFormNew);
@@ -2969,7 +2981,7 @@ const saveChild = () => {
         birthDate: birthdate.get(),
         dueDate: duedate.get(),
         gender: formGender,
-        weight: weight == null ? null : Number(clamp(weight, 0, 100).toFixed(1)),
+        weight: weight == null ? null : Number(clamp(weight, 0, 100000).toFixed(0)),
     };
     if (childFormNew) {
         createChild(fields);
@@ -2993,7 +3005,7 @@ childBirthInput.addEventListener("blur", saveChildOnBlur);
 childDueInput.addEventListener("blur", saveChildOnBlur);
 childWeightInput.addEventListener("blur", saveChildOnBlur);
 childWeightInput.addEventListener("input", () => {
-    childWeightInput.value = normalizeLogNumber(childWeightInput.value, 100, 1);
+    childWeightInput.value = normalizeLogNumber(childWeightInput.value, 100000, 0);
 });
 onSegment(childGender, "gender", (value) => {
     formGender = value;
