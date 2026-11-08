@@ -363,23 +363,23 @@
                            placeholder="31.12.2000" maxlength="10" autocomplete="off" autocapitalize="off"
                            spellcheck="false">
                 </div>
-                <div class="row gap-10">
-                    <div class="field">
-                        <span class="label" data-i18n="gender"></span>
+                <div class="row gap-15">
+                    <div class="field grow">
+                        <label class="label" data-i18n="gender"></label>
                         <div id="child-gender" class="segment" style="--n:2;--i:1" role="group"
                              data-i18n-aria-label="gender">
                             <button type="button" data-gender="girl"></button>
-                            <button type="button" data-gender="boy"></button>
+                            <button type="button" data-gender="boy" class="active"></button>
                         </div>
                     </div>
-                    <label class="field">
-                        <span class="label" data-i18n="weightLabel"></span>
-                        <div class="weight-field">
+                    <div class="field grow">
+                        <label class="label" for="child-weight-input" data-i18n="weightLabel"></label>
+                        <div class="unit-field">
                             <input id="child-weight-input" class="input mono" type="text" inputmode="decimal"
-                                   placeholder="0,0" maxlength="6" autocomplete="off">
-                            <span class="help" data-i18n="weightUnit"></span>
+                                   placeholder="0,0" maxlength="5" autocomplete="off">
+                            <span class="unit" data-i18n="weightUnit"></span>
                         </div>
-                    </label>
+                    </div>
                 </div>
                 <button id="child-cancel" class="help small hidden" type="button" data-i18n="cancel"></button>
             </section>

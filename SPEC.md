@@ -383,6 +383,8 @@ Each child has:
 
 Age is always calculated from `birthDate`; it is never stored permanently.
 
+Gender and weight are shown side by side. Gender uses the two-option segment; weight uses the unit-field pattern with a kg suffix and saves on blur.
+
 ### 10.1 Skills
 
 Development areas:

@@ -491,6 +491,7 @@ button svg.tool,
     grid-template-columns: repeat(var(--n), minmax(0, 1fr));
     gap: 4px;
     padding: 4px;
+    margin: -4px;
     background: var(--head);
     border-radius: var(--radius);
     --n: 2;
@@ -500,8 +501,8 @@ button svg.tool,
 .segment::before {
     content: "";
     position: absolute;
-    inset: 4px auto 4px 4px;
-    width: calc((100% - 8px - (var(--n) - 1) * 4px) / var(--n));
+    inset: 5px auto 5px 5px;
+    width: calc((100% - 10px - (var(--n) - 1) * 5px) / var(--n));
     border-radius: 9px;
     background: var(--accent);
     transform: translateX(calc(var(--i) * (100% + 4px)));
@@ -517,7 +518,7 @@ button svg.tool,
     padding: 0 4px;
     border-radius: 9px;
     font-size: 15px;
-    line-height: 1.2;
+    line-height: 3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -537,19 +538,23 @@ button svg.tool,
     flex: 1;
 }
 
-.weight-field {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.unit-field {
+    display: block;
+    position: relative;
 }
 
-.weight-field .input {
-    flex: 1;
-    min-width: 0;
+.unit-field .input {
+    padding-right: 40px;
 }
 
-.weight-field .help {
-    white-space: nowrap;
+.unit {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    color: var(--help);
+    font-size: 15px;
+    pointer-events: none;
 }
 
 .label {
@@ -1521,7 +1526,7 @@ nav .active > svg {
 
     #child-gender button {
         padding: 0;
-        font-size: 14px;
+        font-size: 13px;
     }
 }
 
