@@ -3,7 +3,7 @@
 // ==========================================================================
 
 const STORAGE_KEY = "childActivityPlanner";
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 const CATALOGUE_URL = "data/activities.json";
 const LANG = "ru";
 
@@ -121,9 +121,9 @@ const DAILY_LOG_METRICS = {
     weight: {decimals: 0, step: 100, max: 9999, target: 100, color: "--red"},
     poop: {decimals: 0, step: 1, max: 20, target: 3, color: "--yellow"},
     pee: {decimals: 0, step: 1, max: 30, target: 10, color: "--blue"},
-    sleep: {decimals: 1, step: 0.5, max: 24, target: 8, color: "--violet"},
+    sleep: {decimals: 0, step: 15, max: 1440, target: 480, color: "--violet"},
     tummy: {decimals: 0, step: 5, max: 300, target: 60, color: "--green"},
-    feed: {decimals: 0, step: 1, max: 30, target: 8, color: "--pink"},
+    feed: {decimals: 0, step: 5, max: 1440, target: 120, color: "--pink"},
     spit: {decimals: 0, step: 1, max: 20, target: 3, color: "--sky"},
     temp: {decimals: 1, step: 0.1, max: 45, target: 37.5, color: "--red"},
 };
@@ -245,9 +245,9 @@ const STRINGS = {
             weight: "г",
             poop: "раз",
             pee: "раз",
-            sleep: "ч",
+            sleep: "мин",
             tummy: "мин",
-            feed: "раз",
+            feed: "мин",
             spit: "раз",
             temp: "°C",
         },
@@ -854,6 +854,23 @@ const translatePage = () => {
 // 7. STORAGE
 // ==========================================================================
 
+const migrateDataVersion = (value) => {
+    if (value.version >= DATA_VERSION) return false;
+    if (Array.isArray(value.dailyLogs)) {
+        value.dailyLogs.forEach((log) => {
+            const values = log.values;
+            if (!values) return;
+            if (Number.isFinite(values.sleep)) values.sleep = Math.round(values.sleep * 60);
+            if ("feed" in values) {
+                values.feedSessions = values.feed;
+                delete values.feed;
+            }
+        });
+    }
+    value.version = DATA_VERSION;
+    return true;
+};
+
 const emptyData = () => ({
     version: DATA_VERSION,
     children: [],
@@ -873,6 +890,7 @@ const loadData = () => {
         data = {...emptyData(), ...JSON.parse(raw)};
         if (!Array.isArray(data.activities)) data.activities = [];
         if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+        if (migrateDataVersion(data)) saveData();
     } catch {
         // keep unreadable data aside instead of overwriting it
         localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
@@ -913,6 +931,7 @@ const importData = (imported) => {
     data = {...emptyData(), ...imported};
     if (!Array.isArray(data.activities)) data.activities = [];
     if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+    migrateDataVersion(data);
     syncCurrentDayWeights();
     if (!activeChild() && data.children.length) data.activeChildId = data.children[0].id;
     refreshCatalogue();

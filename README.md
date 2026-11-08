@@ -157,7 +157,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 ### Bottom Sheets and Confirmation Dialog
 
-The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`. Version 1 child and daily-log weights are converted from kilograms to grams. The current-day weight is synchronized with the child profile; historical daily weights are not overwritten by profile edits.
+The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`. Version 3 converts sleep from hours to minutes and preserves old breastfeeding session counts as legacy `feedSessions`, never as minutes. The current-day weight is synchronized with the child profile; historical daily weights are not overwritten by profile edits.
 
 The option picker is a `.sheet` element displayed over the `#overlay` backdrop, opened and closed using `openSheet()` / `closeSheet()`. Activity, activity search, and activity creation are full-screen pages using the shared `scroll` / `width-500` / `pad-20` page structure. Activity and New Activity use `cta-space` with fixed action buttons. They are switched with `renderPage()`.
 
@@ -188,7 +188,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
 
 ```
 {
-    version: 2,             // data format version
+    version: 3,             // data format version
     children: [],           // child profiles
     activeChildId: "...",   // currently selected child
     recommendations: [],    // all suggested activities
@@ -271,9 +271,10 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
         weight: 7500,      // grams, integer
         poop: 2,           // times
         pee: 6,            // times
-        sleep: 1.5,        // hours, decimal
+        sleep: 90,         // minutes, integer
         tummy: 30,         // minutes
-        feed: 4,           // sessions
+        feed: 45,          // breastfeeding duration, minutes
+        feedSessions: 4,   // legacy session count, not minutes
         spit: 1,           // times
         temp: 36.6         // °C, decimal
     }
@@ -479,7 +480,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"61"` → `"62"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"63"` → `"64"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 

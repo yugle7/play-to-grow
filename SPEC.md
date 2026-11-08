@@ -128,9 +128,9 @@ Below the selected date, eight editable rings show the daily tracking values for
 | Weight | g | Integer |
 | Bowel movements | times | Integer |
 | Urination | times | Integer |
-| Sleep | hours | Decimal hours |
+| Sleep | minutes | Integer minutes |
 | Tummy time | minutes | Integer minutes |
-| Breastfeeding | sessions | Integer |
+| Breastfeeding | minutes | Integer minutes |
 | Spit-ups | times | Integer |
 | Temperature | °C | Decimal |
 
@@ -138,7 +138,7 @@ Behavior:
 
 - Each ring shows the current value, label and unit; an empty value is shown as `—`.
 - Clicking a ring opens the daily log sheet with the metric title, unit, numeric input, decrement and increment buttons, Cancel and OK.
-- Weight, counts and tummy time accept whole numbers. Temperature accepts one decimal place. Sleep accepts decimal hours.
+- Weight, counts, sleep, tummy time and breastfeeding accept whole numbers. Temperature accepts one decimal place.
 - Clearing the input and applying removes that metric for the day.
 - Values are stored per child and per calendar date in `dailyLogs`.
 - The weight ring shows the current weight; its fill represents the change from the last recorded weight before that date. Gains and losses use opposite ring directions, with no fill when there is no earlier weight.
@@ -529,12 +529,12 @@ Completed and partially completed count as performed.
 
 ```js
 const STORAGE_KEY = "childActivityPlanner";
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 ```
 
 ```js
 {
-    version: 2,
+    version: 3,
     children: [],
     activeChildId: null,
     recommendations: [],
@@ -548,7 +548,7 @@ const DATA_VERSION = 2;
 
 `activities` stores custom activities only. The base catalogue stays in `data/activities.json`.
 
-Older exports without `activities` remain valid. Version 1 data is migrated by converting child and daily-log weights from kilograms to grams. Unreadable local data is preserved under a timestamped backup key and is never silently overwritten.
+Older exports without `activities` remain valid. Version 3 migrates sleep from hours to minutes and preserves old breastfeeding session counts as legacy `feedSessions`, never as minutes. Unreadable local data is preserved under a timestamped backup key and is never silently overwritten.
 
 ### 13.2 Child
 
@@ -610,12 +610,13 @@ Kind is `interest`, `activity` or `difficulty`. Manual is `like`, `dislike` or `
     childId,
     date,       // YYYY-MM-DD
     values: {
-        weight, poop, pee, sleep, tummy, feed, spit, temp
+        weight, poop, pee, sleep, tummy, feed, spit, temp,
+        feedSessions // legacy session count, not minutes
     }
 }
 ```
 
-An empty metric is absent from `values`. A log with no values is removed. Older exports without `dailyLogs` remain valid.
+An empty metric is absent from `values`. A log with no values is removed. Older exports without `dailyLogs` remain valid. Legacy `feedSessions` is retained but ignored.
 
 ### 13.6 Dates and durations
 
