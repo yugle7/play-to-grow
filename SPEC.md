@@ -145,7 +145,7 @@ Behavior:
 - On the current date, the weight is synchronized with the child profile weight. Editing either one updates the other. Historical daily weights are never overwritten by profile edits.
 - Switching the selected date, switching the child, or reopening the app loads the matching values.
 - The sleep editor has a play control that starts one sleep interval. The running timer is stored in `sleepTimer` with exact start and end ISO timestamps.
-- While a timer exists, the sleep sheet shows its start time, live elapsed time and Stop/end state instead of the manual input. Only one timer can exist.
+- While a timer exists, the sleep sheet shows a Sleep timer title, start time on the left, elapsed time in the center and the end time on the right after stopping. Stop is at the bottom left; Cancel and OK are at the bottom right. Only one timer can exist.
 - Stop records the end timestamp and freezes the elapsed time. OK adds the interval minutes to the existing sleep totals, splitting the interval by local calendar date at midnight. Cancel discards the interval.
 - Closing the sheet preserves a running or stopped timer. A stored timer restores the timer interface on reopening, and elapsed time is always recomputed from timestamps.
 

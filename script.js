@@ -233,6 +233,7 @@ const STRINGS = {
         increase: "Увеличить",
         stop: "Стоп",
         startSleep: "Начать сон",
+        sleepTimerTitle: "Таймер сна",
         dailyLogLabels: {
             weight: "Вес",
             poop: "Покаки",
@@ -1872,6 +1873,7 @@ const renderLogSheetMode = () => {
     logMinus.classList.toggle("hidden", timerMode);
     logPlus.classList.toggle("hidden", timerMode);
     logTimerPlay.classList.toggle("hidden", logKind !== "sleep" || hasSleepTimer());
+    logTimerStop.classList.toggle("hidden", !timerMode || !!timer?.end);
 
     if (!timerMode) {
         stopSleepTicker();
@@ -1881,7 +1883,6 @@ const renderLogSheetMode = () => {
     logTimerStart.textContent = timeKey(new Date(timer.start));
     logTimerEnd.textContent = timer.end ? timeKey(new Date(timer.end)) : "";
     logTimerEnd.classList.toggle("hidden", !timer.end);
-    logTimerStop.classList.toggle("hidden", !!timer.end);
     updateSleepTimerElapsed();
     startSleepTicker();
 };

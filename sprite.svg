@@ -74,6 +74,10 @@
         <line x1="5" y1="12" x2="19" y2="12"/>
     </symbol>
 
+    <symbol id="start" viewBox="0 0 24 24">
+        <path d="M8 4 L17 12 L8 20 Z"/>
+    </symbol>
+
     <symbol id="download" viewBox="0 0 24 24">
         <path d="M12 2v11M7 10l5 5 5-5M5 20h14"/>
     </symbol>

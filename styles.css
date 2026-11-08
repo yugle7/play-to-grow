@@ -329,6 +329,10 @@ h3 {
     gap: 30px;
 }
 
+.pad-10 {
+    padding: 10px;
+}
+
 .pad-20 {
     padding: 20px;
 }
@@ -1131,7 +1135,7 @@ nav .active > svg {
 }
 
 #log-sheet {
-    height: 300px;
+    height: 200px;
 }
 
 #log-sheet footer {
@@ -1149,8 +1153,25 @@ nav .active > svg {
     width: 100%;
 }
 
-.log-timer-head {
+.log-timer-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
     width: 100%;
+}
+
+#log-timer-start {
+    justify-self: start;
+}
+
+#log-timer-end {
+    justify-self: end;
+}
+
+#log-timer-start,
+#log-timer-end {
+    white-space: nowrap;
 }
 
 .log-timer-elapsed {
@@ -1160,9 +1181,25 @@ nav .active > svg {
     font-variant-numeric: tabular-nums;
 }
 
-#log-timer-stop {
-    min-height: 40px;
-    padding: 0 16px;
+.log-timer-state {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 88px;
+    min-width: 88px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 20px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+}
+
+button.log-timer-state {
+    padding: 0 12px;
+    text-align: center;
 }
 
 #log-sheet footer button {
@@ -1192,6 +1229,10 @@ nav .active > svg {
 
 .big-field span {
     color: var(--help);
+}
+
+#log-manual #log-timer-play {
+    align-self: center;
 }
 
 #watch {
