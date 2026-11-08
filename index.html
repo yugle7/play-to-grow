@@ -22,8 +22,7 @@
 
 <header id="top" class="width-500 hidden">
     <div id="top-selected" class="row gap-10 pad-20">
-        <button id="child-select" class="select" type="button" aria-haspopup="dialog"
-                data-i18n-aria-label="selectChild">
+        <button id="child-select" class="select" type="button" data-i18n-aria-label="nextChild">
             <span class="select-value"></span>
         </button>
         <span id="child-age" class="help small"></span>
@@ -526,18 +525,6 @@
      ========================================================================== -->
 
 <div id="overlay"></div>
-
-<div id="options-sheet" class="sheet center small" role="dialog" aria-modal="true" aria-labelledby="options-title">
-    <div class="row between">
-        <h3 id="options-title"></h3>
-        <button type="button" class="icon-button close" data-i18n-aria-label="close">
-            <svg class="tool">
-                <use href="sprite.svg#close"></use>
-            </svg>
-        </button>
-    </div>
-    <div id="options-list" class="options sheet-scroll"></div>
-</div>
 
 <div id="time-picker" class="sheet" role="dialog" aria-modal="true" data-i18n-aria-label="selectTime">
     <header id="watch">

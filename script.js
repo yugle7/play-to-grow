@@ -146,7 +146,7 @@ const STRINGS = {
         statistics: "Статистика",
         child: "Ребенок",
         settings: "Настройки",
-        selectChild: "Выбрать ребенка",
+        nextChild: "Следующий ребенок",
 
         /* --- Common --- */
         save: "Сохранить",
@@ -771,9 +771,6 @@ const childCancel = $("child-cancel");
 
 /* --- Overlay and modal --- */
 const overlay = $("overlay");
-const optionsSheet = $("options-sheet");
-const optionsTitle = $("options-title");
-const optionsList = $("options-list");
 const modal = $("modal");
 const question = $("question");
 const modalYes = $("modal-yes");
@@ -976,34 +973,6 @@ const closeSheet = () => {
 
 overlay.onclick = closeSheet;
 
-const openOptions = (title, options, selected, onSelect) => {
-    optionsTitle.textContent = title;
-    optionsList.replaceChildren(
-        ...options.map(({value, label, disabled = false}) => {
-            const current = value === selected;
-            const option = el(
-                "button",
-                {
-                    type: "button",
-                    className: current ? "option selected" : "option",
-                    disabled,
-                    onclick: () => {
-                        closeSheet();
-                        if (!current) onSelect(value);
-                    },
-                },
-                label,
-                // el("span", {textContent: label}),
-                current && icon("check", "option-check"),
-            );
-            option.setAttribute("aria-pressed", String(current));
-            return option;
-        }),
-    );
-    optionsList.scrollTop = 0;
-    openSheet(optionsSheet);
-};
-
 const showModal = (text, onYes = null, yesLabel = null) => {
     question.textContent = text;
     onModalYes = onYes;
@@ -1036,10 +1005,6 @@ document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (!modal.hidden) closeModal();
     else if (openedSheet) closeSheet();
-});
-
-document.querySelectorAll(".sheet .close").forEach((button) => {
-    button.onclick = closeSheet;
 });
 
 // ==========================================================================
@@ -1421,16 +1386,12 @@ header.onclick = (event) => {
 };
 
 childSelect.onclick = () => {
-    openOptions(
-        S.selectChild,
-        data.children.map((child) => ({value: child.id, label: child.name})),
-        data.activeChildId,
-        (value) => {
-            updateData((d) => (d.activeChildId = value));
-            childFormNew = false;
-            render();
-        },
-    );
+    if (data.children.length < 2) return;
+    const index = data.children.findIndex((child) => child.id === data.activeChildId);
+    const next = data.children[(index + 1) % data.children.length];
+    updateData((d) => (d.activeChildId = next.id));
+    childFormNew = false;
+    render();
 };
 
 // ==========================================================================

@@ -52,7 +52,7 @@ Calendar, Statistics, Child and Settings keep the bottom navigation visible.
 - Activity and New Activity add `cta-space` and fixed `fab-round` / `fab-close` actions.
 - Search has no fixed bottom action; it uses a back button in its header.
 - Pages are not overlays. Activity, Search and New Activity are not sheets or modals.
-- The shared options sheet and confirmation dialog are the only overlays.
+- The date/time picker and confirmation dialog are the only overlays.
 
 ## 4. Child context header
 
@@ -60,7 +60,7 @@ The global header changes by page.
 
 ### Calendar, Activity and Statistics
 
-The header shows only the selected child's name and age. The name opens the shared child picker, and selecting a child updates `activeChildId` and re-renders the current page.
+The header shows only the selected child's name and age. Clicking the name switches to the next child, wrapping to the first child after the last, and re-renders the current page. With one child, clicking it does nothing.
 
 ### Child
 
