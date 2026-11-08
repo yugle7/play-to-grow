@@ -234,7 +234,6 @@ const STRINGS = {
         stop: "Стоп",
         startSleep: "Начать сон",
         timer: "Таймер",
-        sleepTimerTitle: "Сон",
         dailyLogLabels: {
             weight: "Вес",
             poop: "Покаки",
@@ -533,7 +532,7 @@ let childFormNew = false;
 let formGender = "boy";
 
 let openedSheet = null;
-let sleepTicker = null;
+let timerTicker = null;
 let onModalYes = null;
 let scrollLocked = false;
 let lockedScrollY = 0;
@@ -823,6 +822,7 @@ const logValue = $("log-value");
 const logUnit = $("log-unit");
 const logManual = $("log-manual");
 const logTimer = $("log-timer");
+const logTimerTitle = $("log-timer-title");
 const logTimerStart = $("log-timer-start");
 const logTimerStop = $("log-timer-stop");
 const logTimerEnd = $("log-timer-end");
@@ -892,6 +892,8 @@ const emptyData = () => ({
     preferences: [],
     dailyLogs: [],
     sleepTimer: null,
+    feedTimer: null,
+    tummyTimer: null,
     settings: {},
     activities: [],
 });
@@ -1054,9 +1056,9 @@ const closeSheet = () => {
     openedSheet.classList.remove("open");
     overlay.classList.remove("open");
     openedSheet = null;
-    if (sleepTicker) {
-        clearInterval(sleepTicker);
-        sleepTicker = null;
+    if (timerTicker) {
+        clearInterval(timerTicker);
+        timerTicker = null;
     }
     updateScrollLock();
 };
@@ -1132,7 +1134,9 @@ const deleteChild = (id) =>
         d.recommendations = d.recommendations.filter(other);
         d.feedback = d.feedback.filter(other);
         d.preferences = d.preferences.filter(other);
-        if (d.sleepTimer?.childId === id) d.sleepTimer = null;
+        ["sleep", "feed", "tummy"].forEach((kind) => {
+            if (d[`${kind}Timer`]?.childId === id) d[`${kind}Timer`] = null;
+        });
         d.activeChildId = d.children[0]?.id ?? null;
     });
 
@@ -1836,77 +1840,88 @@ const renderCalendar = () => {
 
 let logKind = null;
 
-const hasSleepTimer = () => !!data.sleepTimer?.start;
+const TIMER_KINDS = ["sleep", "feed", "tummy"];
 
-const formatSleepElapsed = (start, end) => {
+const timerField = (kind) => `${kind}Timer`;
+const timerFor = (kind) => data[timerField(kind)];
+const hasTimer = (kind) => !!timerFor(kind)?.start;
+
+const formatTimerElapsed = (start, end) => {
     const seconds = Math.max(0, Math.floor((end - start) / 1000));
     return seconds < 3600
         ? `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`
         : `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor((seconds % 3600) / 60))}`;
 };
 
-const updateSleepTimerElapsed = () => {
-    const timer = data.sleepTimer;
+const updateTimerElapsed = () => {
+    const timer = timerFor(logKind);
     if (!timer?.start) return;
     const end = timer.end ? new Date(timer.end) : new Date();
-    logTimerElapsed.textContent = formatSleepElapsed(new Date(timer.start), end);
+    logTimerElapsed.textContent = formatTimerElapsed(new Date(timer.start), end);
 };
 
-const stopSleepTicker = () => {
-    if (!sleepTicker) return;
-    clearInterval(sleepTicker);
-    sleepTicker = null;
+const stopTimerTicker = () => {
+    if (!timerTicker) return;
+    clearInterval(timerTicker);
+    timerTicker = null;
 };
 
-const startSleepTicker = () => {
-    stopSleepTicker();
-    if (!data.sleepTimer?.start || data.sleepTimer.end || !logSheet.classList.contains("open")) return;
-    sleepTicker = setInterval(updateSleepTimerElapsed, 1000);
+const startTimerTicker = () => {
+    stopTimerTicker();
+    const timer = timerFor(logKind);
+    if (!timer?.start || timer.end || !logSheet.classList.contains("open")) return;
+    timerTicker = setInterval(updateTimerElapsed, 1000);
 };
 
 const renderLogSheetMode = () => {
-    const timerMode = logKind === "sleep" && hasSleepTimer();
-    const timer = timerMode ? data.sleepTimer : null;
+    const canTimer = TIMER_KINDS.includes(logKind);
+    const timerMode = canTimer && hasTimer(logKind);
+    const timer = timerMode ? timerFor(logKind) : null;
 
     logTitle.classList.toggle("hidden", timerMode);
     logManual.classList.toggle("hidden", timerMode);
     logTimer.classList.toggle("hidden", !timerMode);
     logMinus.classList.toggle("hidden", timerMode);
     logPlus.classList.toggle("hidden", timerMode);
-    logTimerPlay.classList.toggle("hidden", logKind !== "sleep" || hasSleepTimer());
+    logTimerPlay.classList.toggle("hidden", !canTimer || hasTimer(logKind));
     logTimerStop.classList.toggle("hidden", !timerMode || !!timer?.end);
 
     if (!timerMode) {
-        stopSleepTicker();
+        stopTimerTicker();
         return;
     }
 
+    logTimerTitle.textContent = S.dailyLogLabels[logKind];
     logTimerStart.textContent = timeKey(new Date(timer.start));
     logTimerEnd.textContent = timer.end ? timeKey(new Date(timer.end)) : "";
     logTimerEnd.classList.toggle("hidden", !timer.end);
-    updateSleepTimerElapsed();
-    startSleepTicker();
+    updateTimerElapsed();
+    startTimerTicker();
 };
 
-const startSleepTimer = () => {
-    if (hasSleepTimer()) return;
+const startMetricTimer = () => {
+    const kind = logKind;
+    if (!TIMER_KINDS.includes(kind) || hasTimer(kind)) return;
     const child = activeChild();
     if (!child) return;
+    const start = now();
     updateData((d) => {
-        d.sleepTimer = {childId: child.id, start: now(), end: null};
+        d[timerField(kind)] = {childId: child.id, date: dateKey(new Date(start)), start, end: null};
     });
     renderLogSheetMode();
 };
 
-const stopSleepTimer = () => {
-    if (!hasSleepTimer() || data.sleepTimer.end) return;
+const stopMetricTimer = () => {
+    const kind = logKind;
+    const timer = timerFor(kind);
+    if (!timer?.start || timer.end) return;
     updateData((d) => {
-        d.sleepTimer.end = now();
+        d[timerField(kind)].end = now();
     });
     renderLogSheetMode();
 };
 
-const sleepMinutesByDate = (start, end) => {
+const timerMinutesByDate = (start, end) => {
     const result = new Map();
     let cursor = new Date(start);
     while (cursor < end) {
@@ -1920,20 +1935,21 @@ const sleepMinutesByDate = (start, end) => {
     return result;
 };
 
-const confirmSleepTimer = () => {
-    const timer = data.sleepTimer;
+const confirmMetricTimer = () => {
+    const kind = logKind;
+    const timer = timerFor(kind);
     if (!timer?.start) return;
     const start = new Date(timer.start);
     const end = timer.end ? new Date(timer.end) : new Date();
-    const minutesByDate = sleepMinutesByDate(start, end);
+    const minutesByDate = timerMinutesByDate(start, end);
 
     updateData((d) => {
         minutesByDate.forEach((minutes, date) => {
             const log = d.dailyLogs.find((item) => item.childId === timer.childId && item.date === date);
-            const total = Number(log?.values?.sleep) || 0;
-            setDailyLogValueIn(d, timer.childId, date, "sleep", total + minutes);
+            const total = Number(log?.values?.[kind]) || 0;
+            setDailyLogValueIn(d, timer.childId, date, kind, total + minutes);
         });
-        d.sleepTimer = null;
+        d[timerField(kind)] = null;
     });
 
     closeSheet();
@@ -1941,9 +1957,9 @@ const confirmSleepTimer = () => {
 };
 
 const cancelLogSheet = () => {
-    if (logKind === "sleep" && hasSleepTimer()) {
+    if (TIMER_KINDS.includes(logKind) && hasTimer(logKind)) {
         updateData((d) => {
-            d.sleepTimer = null;
+            d[timerField(logKind)] = null;
         });
     }
     closeSheet();
@@ -1971,8 +1987,8 @@ const shiftLogValue = (diff) => {
 };
 
 const applyLogValue = () => {
-    if (logKind === "sleep" && hasSleepTimer()) {
-        confirmSleepTimer();
+    if (TIMER_KINDS.includes(logKind) && hasTimer(logKind)) {
+        confirmMetricTimer();
         return;
     }
     const config = DAILY_LOG_METRICS[logKind];
@@ -1995,8 +2011,8 @@ logValue.addEventListener("input", () => {
 
 logMinus.onclick = () => shiftLogValue(-1);
 logPlus.onclick = () => shiftLogValue(1);
-logTimerPlay.onclick = startSleepTimer;
-logTimerStop.onclick = stopSleepTimer;
+logTimerPlay.onclick = startMetricTimer;
+logTimerStop.onclick = stopMetricTimer;
 closeLog.onclick = cancelLogSheet;
 applyLog.onclick = applyLogValue;
 
@@ -3535,7 +3551,8 @@ document.querySelectorAll("input:not([type=file])").forEach((input) => {
     if (syncCurrentDayWeights()) saveData();
     await loadCatalogue();
     renderPage("calendar");
-    if (hasSleepTimer()) openLogSheet("sleep");
+    const timerToRestore = TIMER_KINDS.find(hasTimer);
+    if (timerToRestore) openLogSheet(timerToRestore);
     navigator.serviceWorker?.register("sw.js", {updateViaCache: "none"});
 
     // the date changes while the app stays open: refresh age and the daily screen
