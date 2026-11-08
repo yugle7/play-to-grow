@@ -374,7 +374,8 @@ Each child has:
 - `name`;
 - `birthDate`;
 - optional `dueDate`;
-- optional `gender`;
+- optional `weight` in kg, one decimal;
+- `gender`: `girl` or `boy`, defaulting to `boy`;
 - `createdAt`;
 - `updatedAt`;
 - `skills`;
@@ -553,6 +554,7 @@ Older exports without `activities` remain valid. Unreadable local data is preser
     name,
     birthDate,
     dueDate,
+    weight,
     gender,
     createdAt,
     updatedAt,
@@ -717,7 +719,8 @@ The implementation is complete when these checks pass:
 - Activity suggestions, Search, Add and Refresh work.
 - Non-skipped feedback saves status, duration and preferences; the default skipped status shows Refresh Activity instead of Save.
 - Statistics are scoped to the selected child and show frequency, time, areas, consistency, feedback and positive items.
-- Child profiles can be created, edited, switched and deleted.
+- Child profiles can be created, edited, switched and deleted, including weight and gender.
+- Existing unspecified genders are migrated to `boy`.
 - Export, import and deletion work, including custom activities and daily tracking values.
 - The app works offline after the first load.
 - Layouts at 320px and 390px have no horizontal overflow.

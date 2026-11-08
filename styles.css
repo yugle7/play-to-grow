@@ -537,6 +537,21 @@ button svg.tool,
     flex: 1;
 }
 
+.weight-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.weight-field .input {
+    flex: 1;
+    min-width: 0;
+}
+
+.weight-field .help {
+    white-space: nowrap;
+}
+
 .label {
     font-size: 13px;
     color: var(--help);
@@ -1502,6 +1517,11 @@ nav .active > svg {
 @media (max-width: 360px) {
     #log-rings {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #child-gender button {
+        padding: 0;
+        font-size: 14px;
     }
 }
 

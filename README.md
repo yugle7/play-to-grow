@@ -35,7 +35,7 @@ The app has five sections in the bottom navigation:
 | **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its editable daily tracking rings, activity list and feedback summary. |
 | **Activity**   | Full-screen activity entry opened from the middle navigation button: name input with suggestions, Search and New Activity pages, a recommendation refresh button, full activity description, and the feedback form with actual duration. Save closes back to Calendar. |
 | **Statistics** | Charts for the selected child: activity frequency, time spent, developmental areas, consistency, feedback over time, and positive activities and skills. |
-| **Child**      | Child profile: name, date of birth, estimated due date (optional), age, and gender (optional). Skills, interests, and activity conditions. Multiple children can be added. |
+| **Child**      | Child profile: name, date of birth, estimated due date (optional), weight (optional), age, and gender. Skills, interests, and activity conditions. Multiple children can be added. |
 | **Settings**   | Export and import data as JSON, reset feedback-based preferences, and delete all data. |
 
 Typical user flow:
@@ -157,7 +157,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 ### Bottom Sheets and Confirmation Dialog
 
-The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children.
+The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`.
 
 The option picker is a `.sheet` element displayed over the `#overlay` backdrop, opened and closed using `openSheet()` / `closeSheet()`. Activity, activity search, and activity creation are full-screen pages using the shared `scroll` / `width-500` / `pad-20` page structure. Activity and New Activity use `cta-space` with fixed action buttons. They are switched with `renderPage()`.
 
@@ -208,7 +208,8 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     name: "Anya",
     birthDate: "2026-05-21",          // calendar date, no time
     dueDate: "2026-05-21",            // estimated due date, optional, null
-    gender: "unspecified",            // unspecified | female | male; does not affect recommendations
+    weight: 7.5,                     // kg, optional, one decimal
+    gender: "boy",                   // girl | boy; defaults to boy
     createdAt: "2026-10-30T10:00:00.000Z",
     updatedAt: "2026-10-30T10:05:00.000Z",
     skills: [{id: "head_control", level: "developing", updatedAt: "..."}],
@@ -478,7 +479,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"54"` → `"55"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"57"` → `"58"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 

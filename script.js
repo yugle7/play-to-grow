@@ -326,8 +326,10 @@ const STRINGS = {
         name: "Имя",
         birthDate: "Дата рождения",
         dueDate: "ПДР (необязательно)",
-        gender: "Пол (необязательно)",
-        genders: {unspecified: "Не указан", female: "Девочка", male: "Мальчик"},
+        gender: "Пол",
+        genders: {girl: "Девочка", boy: "Мальчик"},
+        weightLabel: "Вес",
+        weightUnit: "кг",
         deleteChild: "Удалить профиль",
         deleteChildQuestion: (name) =>
             `Удалить профиль «${name}» вместе с историей занятий? Это действие нельзя отменить.`,
@@ -524,7 +526,7 @@ let editingRecId = null;
 let activityDate = null;
 
 let childFormNew = false;
-let formGender = "unspecified";
+let formGender = "boy";
 
 let openedSheet = null;
 let onModalYes = null;
@@ -549,6 +551,8 @@ const timeFromTimestamp = (value) => {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? "" : timeKey(date);
 };
+
+const normalizeChildGender = (gender) => (gender === "female" || gender === "girl" ? "girl" : "boy");
 
 const clamp = (x, min, max) => Math.min(max, Math.max(min, x));
 
@@ -803,6 +807,7 @@ const childNameInput = $("child-name-input");
 const childBirthInput = $("child-birth-input");
 const childDueInput = $("child-due-input");
 const childGender = $("child-gender");
+const childWeightInput = $("child-weight-input");
 const childCancel = $("child-cancel");
 
 /* --- Overlay and modal --- */
@@ -868,6 +873,17 @@ const loadData = () => {
         data = {...emptyData(), ...JSON.parse(raw)};
         if (!Array.isArray(data.activities)) data.activities = [];
         if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+        if (Array.isArray(data.children)) {
+            let migrated = false;
+            data.children.forEach((child) => {
+                const gender = normalizeChildGender(child.gender);
+                if (child.gender !== gender) {
+                    child.gender = gender;
+                    migrated = true;
+                }
+            });
+            if (migrated) saveData();
+        }
     } catch {
         // keep unreadable data aside instead of overwriting it
         localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
@@ -908,6 +924,7 @@ const importData = (imported) => {
     data = {...emptyData(), ...imported};
     if (!Array.isArray(data.activities)) data.activities = [];
     if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
+    data.children.forEach((child) => (child.gender = normalizeChildGender(child.gender)));
     if (!activeChild()) data.activeChildId = data.children[0]?.id ?? null;
     refreshCatalogue();
     saveData();
@@ -2713,8 +2730,9 @@ const renderChild = () => {
     childNameInput.value = formChild?.name ?? "";
     birthdate.set(formChild?.birthDate);
     duedate.set(formChild?.dueDate);
-    formGender = formChild?.gender ?? "unspecified";
+    formGender = formChild ? normalizeChildGender(formChild.gender) : "boy";
     setSegment(childGender, formGender, "gender");
+    childWeightInput.value = formChild?.weight == null ? "" : formatLogValue(formChild.weight, 1);
     childCancel.classList.toggle("hidden", !childFormNew);
 
     childDetails.classList.toggle("hidden", childFormNew);
@@ -2945,11 +2963,13 @@ const cancelChildForm = () => {
 
 const saveChild = () => {
     if (!childFormReady()) return;
+    const weight = parseLogNumber(childWeightInput.value);
     const fields = {
         name: childNameInput.value.trim(),
         birthDate: birthdate.get(),
         dueDate: duedate.get(),
         gender: formGender,
+        weight: weight == null ? null : Number(clamp(weight, 0, 100).toFixed(1)),
     };
     if (childFormNew) {
         createChild(fields);
@@ -2971,6 +2991,10 @@ childCancel.onclick = cancelChildForm;
 childNameInput.addEventListener("blur", saveChildOnBlur);
 childBirthInput.addEventListener("blur", saveChildOnBlur);
 childDueInput.addEventListener("blur", saveChildOnBlur);
+childWeightInput.addEventListener("blur", saveChildOnBlur);
+childWeightInput.addEventListener("input", () => {
+    childWeightInput.value = normalizeLogNumber(childWeightInput.value, 100, 1);
+});
 onSegment(childGender, "gender", (value) => {
     formGender = value;
     saveChild();
