@@ -1233,6 +1233,12 @@ button.log-timer-state {
 
 #log-manual #log-timer-play {
     align-self: center;
+    min-height: 40px;
+    padding: 8px 6px;
+    border-radius: 20px;
+    color: var(--accent);
+    font-size: 15px;
+    white-space: nowrap;
 }
 
 #watch {

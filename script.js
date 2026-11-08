@@ -233,7 +233,8 @@ const STRINGS = {
         increase: "Увеличить",
         stop: "Стоп",
         startSleep: "Начать сон",
-        sleepTimerTitle: "Таймер сна",
+        timer: "Таймер",
+        sleepTimerTitle: "Сон",
         dailyLogLabels: {
             weight: "Вес",
             poop: "Покаки",
