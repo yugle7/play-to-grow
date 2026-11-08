@@ -117,6 +117,17 @@ const FEEDBACK_DIFFICULTIES = ["not_observed", "too_easy", "appropriate", "too_h
 const REASONS = ["no_time", "no_materials", "child_not_in_mood", "not_suitable", "other"];
 const NEEDS_REASON = ["not_completed", "skipped"];
 
+const DAILY_LOG_METRICS = {
+    weight: {decimals: 0, step: 100, max: 9999, target: 100, color: "--red"},
+    poop: {decimals: 0, step: 1, max: 20, target: 3, color: "--yellow"},
+    pee: {decimals: 0, step: 1, max: 30, target: 10, color: "--blue"},
+    sleep: {decimals: 1, step: 0.5, max: 24, target: 8, color: "--violet"},
+    tummy: {decimals: 0, step: 5, max: 300, target: 60, color: "--green"},
+    feed: {decimals: 0, step: 1, max: 30, target: 8, color: "--pink"},
+    spit: {decimals: 0, step: 1, max: 20, target: 3, color: "--sky"},
+    temp: {decimals: 1, step: 0.1, max: 45, target: 37.5, color: "--red"},
+};
+
 const PREFERENCE_STEP = 25; // one liked or disliked response; repeated responses add up
 const DIFFICULTY_STEP = 50; // one "too easy" or "too hard" response
 const INTEREST_SIGN = {liked: 1, disliked: -1};
@@ -216,6 +227,30 @@ const STRINGS = {
         selectMinute: "Выбрать минуты",
         previous: "Назад",
         next: "Вперед",
+        dailyLogTitle: "Показатели дня",
+        valueLabel: "Значение",
+        decrease: "Уменьшить",
+        increase: "Увеличить",
+        dailyLogLabels: {
+            weight: "Вес",
+            poop: "Покаки",
+            pee: "Пописи",
+            sleep: "Сон",
+            tummy: "На животике",
+            feed: "Кормления",
+            spit: "Срыгивания",
+            temp: "Темп-ра",
+        },
+        dailyLogUnits: {
+            weight: "г",
+            poop: "раз",
+            pee: "раз",
+            sleep: "ч",
+            tummy: "мин",
+            feed: "раз",
+            spit: "раз",
+            temp: "°C",
+        },
         comment: "Комментарий",
         commentPlaceholder: "Необязательно",
         feedbackStatuses: {
@@ -653,6 +688,7 @@ const calendarEl = $("calendar");
 const calendars = $("calendars");
 const chosenDay = $("chosen-day");
 const dayEntries = $("day-entries");
+const logRings = $("log-rings");
 
 /* --- Activity --- */
 const activityWelcome = $("activity-welcome");
@@ -771,6 +807,14 @@ const childCancel = $("child-cancel");
 
 /* --- Overlay and modal --- */
 const overlay = $("overlay");
+const logSheet = $("log-sheet");
+const logTitle = $("log-title");
+const logValue = $("log-value");
+const logUnit = $("log-unit");
+const logMinus = $("log-minus");
+const logPlus = $("log-plus");
+const closeLog = $("close-log");
+const applyLog = $("apply-log");
 const modal = $("modal");
 const question = $("question");
 const modalYes = $("modal-yes");
@@ -812,6 +856,7 @@ const emptyData = () => ({
     recommendations: [],
     feedback: [],
     preferences: [],
+    dailyLogs: [],
     settings: {},
     activities: [],
 });
@@ -822,6 +867,7 @@ const loadData = () => {
     try {
         data = {...emptyData(), ...JSON.parse(raw)};
         if (!Array.isArray(data.activities)) data.activities = [];
+        if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
     } catch {
         // keep unreadable data aside instead of overwriting it
         localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
@@ -855,11 +901,13 @@ const isValidImport = (d) =>
     DATA_LISTS.every((key) => Array.isArray(d[key])) &&
     d.children.every((c) => c.id && c.name && DATE_PATTERN.test(c.birthDate) && (!c.dueDate || DATE_PATTERN.test(c.dueDate)) && Array.isArray(c.skills) && c.conditions) &&
     d.recommendations.every((r) => r.childId && r.activityId && DATE_PATTERN.test(r.date) && typeof r.createdAt === "string") &&
-    d.preferences.every((p) => PREFERENCE_KINDS.includes(p.kind));
+    d.preferences.every((p) => PREFERENCE_KINDS.includes(p.kind)) &&
+    (!d.dailyLogs || Array.isArray(d.dailyLogs));
 
 const importData = (imported) => {
     data = {...emptyData(), ...imported};
     if (!Array.isArray(data.activities)) data.activities = [];
+    if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
     if (!activeChild()) data.activeChildId = data.children[0]?.id ?? null;
     refreshCatalogue();
     saveData();
@@ -1497,6 +1545,102 @@ const AREA_BACKGROUND = {
     social_emotional: "var(--sky)",
 };
 
+const dailyLogFor = (childId, date) =>
+    data.dailyLogs.find((log) => log.childId === childId && log.date === date);
+
+const dailyLogValues = (childId, date) => dailyLogFor(childId, date)?.values ?? {};
+
+const setDailyLogValue = (childId, date, kind, value) =>
+    updateData((d) => {
+        let log = d.dailyLogs.find((item) => item.childId === childId && item.date === date);
+        if (!log && value == null) return;
+        if (!log) {
+            log = {childId, date, values: {}};
+            d.dailyLogs.push(log);
+        }
+        if (value == null) delete log.values[kind];
+        else log.values[kind] = value;
+        if (!Object.keys(log.values).length) d.dailyLogs = d.dailyLogs.filter((item) => item !== log);
+    });
+
+const formatLogValue = (value, decimals = 0) => {
+    const rounded = Number(Number(value).toFixed(decimals));
+    return String(rounded).replace(".", ",");
+};
+
+const normalizeLogNumber = (value, max, decimals) => {
+    let next = value.replace(",", ".").replace(/[^\d.]/g, "");
+    const point = next.indexOf(".");
+    if (point >= 0) {
+        next = decimals
+            ? next.slice(0, point + 1) + next.slice(point + 1).replace(/\./g, "").slice(0, decimals)
+            : next.slice(0, point);
+    }
+    next = next.replace(/^0+(?=\d)/, "");
+    while (next && +next > max) next = next.slice(0, -1);
+    return next.replace(".", ",");
+};
+
+const parseLogNumber = (value) => {
+    const number = Number(String(value).replace(",", "."));
+    return String(value).trim() && Number.isFinite(number) ? number : null;
+};
+
+const RING_LENGTH = 2 * Math.PI * 28;
+
+const ringHtml = ({kind, value, target, label, unit, color, decimals}) => {
+    target = Math.max(1, target);
+    const valueText = value == null ? "0" : formatLogValue(value, decimals);
+    let ring = "";
+
+    if (value != null) {
+        const delta = value;
+        if (Math.abs(delta) > target) {
+            const arrow = delta > 0 ? "M 29 0 L 32 4 L 29 9" : "M 35 0 L 32 4 L 35 9";
+            ring = `<circle class="fill" cx="32" cy="32" r="28" stroke="var(${color})" />`;
+            ring += `<path d="${arrow}" stroke="var(--bg)" stroke-width="2" transform="rotate(${(360 * delta) / target} 32 32)"/>`;
+        } else {
+            const ratio = Math.abs(delta / target);
+            const length = RING_LENGTH * ratio;
+            const angle = 90 + (delta < 0) * 360 * ratio;
+            ring = `<circle class="fill" cx="32" cy="32" r="28"
+                style="stroke:var(${color});stroke-dasharray:${length} ${RING_LENGTH}"
+                transform="rotate(-${angle} 32 32)"/>`;
+        }
+    }
+
+    return `<button type="button" class="ring" data-kind="${kind}" aria-label="${label}, ${unit}: ${valueText}">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle class="track" cx="32" cy="32" r="28"></circle>
+            ${ring}
+        </svg>
+        <div class="ring-value mono">${valueText}</div>
+        <div class="small help center">${label}</div>
+    </button>`;
+};
+
+const renderLogRings = () => {
+    const child = activeChild();
+    if (!child) {
+        logRings.replaceChildren();
+        return;
+    }
+    const values = dailyLogValues(child.id, selectedDate);
+    logRings.innerHTML = Object.entries(DAILY_LOG_METRICS)
+        .map(([kind, config]) =>
+            ringHtml({
+                kind,
+                value: values[kind],
+                target: config.target,
+                label: S.dailyLogLabels[kind],
+                unit: S.dailyLogUnits[kind],
+                color: config.color,
+                decimals: config.decimals,
+            }),
+        )
+        .join("");
+};
+
 const calendarData = (child) => {
     const entries = diaryEntries(child.id);
     const byDate = new Map();
@@ -1578,7 +1722,7 @@ const renderCalendarDay = (data) => {
     dayEntries.replaceChildren(
         ...(selectedEntries.length
             ? selectedEntries.map(diaryItem)
-            : [el("div", {className: "small help center pad-20", textContent: S.calendarEmpty})]),
+            : [el("div", {className: "small help center", textContent: S.calendarEmpty})]),
     );
 };
 
@@ -1592,6 +1736,58 @@ const renderCalendar = () => {
     const data = calendarData(child);
     calendarEl.replaceChildren(getCalendarPage(0, data));
     renderCalendarDay(data);
+    renderLogRings();
+};
+
+let logKind = null;
+
+const openLogSheet = (kind) => {
+    const config = DAILY_LOG_METRICS[kind];
+    const child = activeChild();
+    if (!child) return;
+    logKind = kind;
+    const value = dailyLogValues(child.id, selectedDate)[kind];
+    logTitle.textContent = S.dailyLogLabels[kind];
+    logUnit.textContent = S.dailyLogUnits[kind];
+    logValue.value = value == null ? "" : formatLogValue(value, config.decimals);
+    logValue.inputMode = config.decimals ? "decimal" : "numeric";
+    openSheet(logSheet);
+};
+
+const shiftLogValue = (diff) => {
+    const config = DAILY_LOG_METRICS[logKind];
+    let value = parseLogNumber(logValue.value) ?? 0;
+    value = Math.min(config.max, Math.max(0, value + diff * config.step));
+    logValue.value = formatLogValue(value, config.decimals);
+};
+
+const applyLogValue = () => {
+    const config = DAILY_LOG_METRICS[logKind];
+    const child = activeChild();
+    if (!child) return;
+    const parsed = parseLogNumber(logValue.value);
+    const value =
+        parsed == null
+            ? null
+            : Number(Math.min(config.max, Math.max(0, parsed)).toFixed(config.decimals));
+    setDailyLogValue(child.id, selectedDate, logKind, value);
+    closeSheet();
+    renderLogRings();
+};
+
+logValue.addEventListener("input", () => {
+    const config = DAILY_LOG_METRICS[logKind];
+    logValue.value = normalizeLogNumber(logValue.value, config.max, config.decimals);
+});
+
+logMinus.onclick = () => shiftLogValue(-1);
+logPlus.onclick = () => shiftLogValue(1);
+closeLog.onclick = closeSheet;
+applyLog.onclick = applyLogValue;
+
+logRings.onclick = (event) => {
+    const ring = event.target.closest("[data-kind]");
+    if (ring) openLogSheet(ring.dataset.kind);
 };
 
 const addPageMonth = (delta) => {

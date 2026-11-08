@@ -51,9 +51,12 @@
             <button class="tap add-child" data-i18n="addChild"></button>
         </div>
 
-        <div id="calendar-main">
+        <div id="calendar-main" class="col gap-20">
             <div id="calendar"></div>
             <h3 id="chosen-day" class="accent center"></h3>
+            <section id="daily-log" class="col gap-10">
+                <div id="log-rings"></div>
+            </section>
             <div id="day-entries"></div>
         </div>
     </section>
@@ -564,6 +567,28 @@
         </button>
         <button id="time-cancel" class="right" type="button" data-i18n="cancel"></button>
         <button id="time-apply" class="accent" type="button">OK</button>
+    </footer>
+</div>
+
+<div id="log-sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="log-title">
+    <h3 id="log-title" class="center"></h3>
+    <div class="big-field">
+        <input id="log-value" class="mono" inputmode="decimal" autocomplete="off" placeholder="—" data-i18n-aria-label="valueLabel">
+        <span id="log-unit"></span>
+    </div>
+    <footer>
+        <button id="log-minus" class="icon-button" type="button" data-i18n-aria-label="decrease">
+            <svg class="tool">
+                <use href="sprite.svg#minus"></use>
+            </svg>
+        </button>
+        <button id="log-plus" class="icon-button" type="button" data-i18n-aria-label="increase">
+            <svg class="tool">
+                <use href="sprite.svg#plus"></use>
+            </svg>
+        </button>
+        <button id="close-log" class="right" type="button" data-i18n="cancel"></button>
+        <button id="apply-log" class="accent" type="button">OK</button>
     </footer>
 </div>
 

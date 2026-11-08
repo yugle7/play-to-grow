@@ -32,7 +32,7 @@ The app has five sections in the bottom navigation:
 
 | Section        | Description                                                                                                                                                                |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its activity list and feedback summary. |
+| **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its editable daily tracking rings, activity list and feedback summary. |
 | **Activity**   | Full-screen activity entry opened from the middle navigation button: name input with suggestions, Search and New Activity pages, a recommendation refresh button, full activity description, and the feedback form with actual duration. Save closes back to Calendar. |
 | **Statistics** | Charts for the selected child: activity frequency, time spent, developmental areas, consistency, feedback over time, and positive activities and skills. |
 | **Child**      | Child profile: name, date of birth, estimated due date (optional), age, and gender (optional). Skills, interests, and activity conditions. Multiple children can be added. |
@@ -194,6 +194,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     recommendations: [],    // all suggested activities
     feedback: [],           // feedback records
     preferences: [],        // interests and feedback-based preferences
+    dailyLogs: [],          // daily weight, sleep and baby-care tracking
     activities: [],         // custom activities created in the app
     settings: {}            // reserved for future use
 }
@@ -258,6 +259,27 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     updatedAt: "..."
 }
 ```
+
+**Daily log** (`dailyLogs[]`): one record per child and calendar date.
+
+```
+{
+    childId: "...",
+    date: "2026-11-08",
+    values: {
+        weight: 7.5,       // kg, decimal
+        poop: 2,           // times
+        pee: 6,            // times
+        sleep: 1.5,        // hours, decimal
+        tummy: 30,         // minutes
+        feed: 4,           // sessions
+        spit: 1,           // times
+        temp: 36.6         // °C, decimal
+    }
+}
+```
+
+Missing keys are empty metrics. Empty daily logs are removed.
 
 ### Dates and Time
 
@@ -456,7 +478,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"53"` → `"54"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"54"` → `"55"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 

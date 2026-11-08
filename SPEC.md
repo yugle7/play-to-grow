@@ -100,7 +100,8 @@ The page uses the existing calendar structure:
 - day buttons in a seven-column grid;
 - selected day with a highlighted background and larger number;
 - selected date heading;
-- daily activity list below the calendar.
+- daily tracking rings below the selected date;
+- daily activity list below the tracking section.
 
 The selected date defaults to today. Selecting a day updates the date heading and daily list without changing the month. Paging the calendar changes only the displayed month; the selected date changes when a day is tapped. Swipe paging shows the previous, current and next months during the gesture and commits the month after the transition.
 
@@ -118,7 +119,31 @@ A diary entry is a recommendation with saved feedback.
 - Clicking an entry opens the Activity page in edit mode for that recommendation and loads its saved feedback.
 - Days without diary entries show a centered empty state.
 
-### 5.3 Day markers
+### 5.3 Daily tracking
+
+Below the selected date, eight editable rings show the daily tracking values for the active child and selected date:
+
+| Metric | Unit | Value |
+| --- | --- | --- |
+| Weight | kg | Decimal |
+| Bowel movements | times | Integer |
+| Urination | times | Integer |
+| Sleep | hours | Decimal hours |
+| Tummy time | minutes | Integer minutes |
+| Breastfeeding | sessions | Integer |
+| Spit-ups | times | Integer |
+| Temperature | °C | Decimal |
+
+Behavior:
+
+- Each ring shows the current value, label and unit; an empty value is shown as `—`.
+- Clicking a ring opens the daily log sheet with the metric title, unit, numeric input, decrement and increment buttons, Cancel and OK.
+- Weight and temperature accept one decimal place. Sleep accepts decimal hours. Counts and tummy time accept whole numbers.
+- Clearing the input and applying removes that metric for the day.
+- Values are stored per child and per calendar date in `dailyLogs`.
+- Switching the selected date, switching the child, or reopening the app loads the matching values.
+
+### 5.4 Day markers
 
 Only performed activities create day markers. Performed statuses are:
 
@@ -510,6 +535,7 @@ const DATA_VERSION = 1;
     recommendations: [],
     feedback: [],
     preferences: [],
+    dailyLogs: [],
     settings: {},
     activities: []
 }
@@ -571,7 +597,21 @@ Statuses include `recommended`, `in_progress`, `completed`, `partially_completed
 
 Kind is `interest`, `activity` or `difficulty`. Manual is `like`, `dislike` or `null`.
 
-### 13.5 Dates and durations
+### 13.5 Daily log
+
+```js
+{
+    childId,
+    date,       // YYYY-MM-DD
+    values: {
+        weight, poop, pee, sleep, tummy, feed, spit, temp
+    }
+}
+```
+
+An empty metric is absent from `values`. A log with no values is removed. Older exports without `dailyLogs` remain valid.
+
+### 13.6 Dates and durations
 
 - Diary dates are local `YYYY-MM-DD` strings.
 - Age is calculated from local calendar dates.
@@ -592,6 +632,7 @@ Import validation checks:
 
 - data version;
 - children, recommendations, feedback and preferences arrays;
+- an optional `dailyLogs` array;
 - child identity, name, birth date, skills and conditions;
 - recommendation links, dates and timestamps;
 - preference kinds.
@@ -641,7 +682,7 @@ Custom activities use the same schema and are merged into the catalogue at runti
 - Use safe-area spacing and accessible touch targets.
 - Main pages keep the fixed bottom navigation.
 - Activity, Search and New Activity use full-screen page layouts.
-- Calendar uses the existing seven-column month grid.
+- Calendar uses the existing seven-column month grid and the daily tracking ring grid.
 - Statistics uses card and chart sections.
 - Both light and dark appearance must remain readable.
 - The app must work at 320px and 390px without horizontal scrolling.
@@ -668,6 +709,8 @@ The implementation is complete when these checks pass:
 - Search opens as a full-screen page, filters available activities, and returns to Activity.
 - New Activity is full-screen, validates fields, saves a custom activity and returns to Activity.
 - Calendar month navigation and date selection work.
+- The eight daily tracking rings show values, labels and units, open the editor, and persist per child and date.
+- Clearing a daily tracking value leaves the field empty.
 - Completed and partially completed entries create correctly sized, coloured markers.
 - The daily list shows titles, durations, status and feedback indicators.
 - Skipped and not-completed feedback appears in the daily list without creating markers.
@@ -675,7 +718,7 @@ The implementation is complete when these checks pass:
 - Non-skipped feedback saves status, duration and preferences; the default skipped status shows Refresh Activity instead of Save.
 - Statistics are scoped to the selected child and show frequency, time, areas, consistency, feedback and positive items.
 - Child profiles can be created, edited, switched and deleted.
-- Export, import and deletion work, including custom activities.
+- Export, import and deletion work, including custom activities and daily tracking values.
 - The app works offline after the first load.
 - Layouts at 320px and 390px have no horizontal overflow.
 - Both themes are readable.
