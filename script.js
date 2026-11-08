@@ -231,6 +231,8 @@ const STRINGS = {
         valueLabel: "Значение",
         decrease: "Уменьшить",
         increase: "Увеличить",
+        stop: "Стоп",
+        startSleep: "Начать сон",
         dailyLogLabels: {
             weight: "Вес",
             poop: "Покаки",
@@ -529,6 +531,7 @@ let childFormNew = false;
 let formGender = "boy";
 
 let openedSheet = null;
+let sleepTicker = null;
 let onModalYes = null;
 let scrollLocked = false;
 let lockedScrollY = 0;
@@ -816,6 +819,13 @@ const logSheet = $("log-sheet");
 const logTitle = $("log-title");
 const logValue = $("log-value");
 const logUnit = $("log-unit");
+const logManual = $("log-manual");
+const logTimer = $("log-timer");
+const logTimerStart = $("log-timer-start");
+const logTimerStop = $("log-timer-stop");
+const logTimerEnd = $("log-timer-end");
+const logTimerElapsed = $("log-timer-elapsed");
+const logTimerPlay = $("log-timer-play");
 const logMinus = $("log-minus");
 const logPlus = $("log-plus");
 const closeLog = $("close-log");
@@ -879,6 +889,7 @@ const emptyData = () => ({
     feedback: [],
     preferences: [],
     dailyLogs: [],
+    sleepTimer: null,
     settings: {},
     activities: [],
 });
@@ -1041,6 +1052,10 @@ const closeSheet = () => {
     openedSheet.classList.remove("open");
     overlay.classList.remove("open");
     openedSheet = null;
+    if (sleepTicker) {
+        clearInterval(sleepTicker);
+        sleepTicker = null;
+    }
     updateScrollLock();
 };
 
@@ -1115,6 +1130,7 @@ const deleteChild = (id) =>
         d.recommendations = d.recommendations.filter(other);
         d.feedback = d.feedback.filter(other);
         d.preferences = d.preferences.filter(other);
+        if (d.sleepTimer?.childId === id) d.sleepTimer = null;
         d.activeChildId = d.children[0]?.id ?? null;
     });
 
@@ -1818,6 +1834,119 @@ const renderCalendar = () => {
 
 let logKind = null;
 
+const hasSleepTimer = () => !!data.sleepTimer?.start;
+
+const formatSleepElapsed = (start, end) => {
+    const seconds = Math.max(0, Math.floor((end - start) / 1000));
+    return seconds < 3600
+        ? `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`
+        : `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor((seconds % 3600) / 60))}`;
+};
+
+const updateSleepTimerElapsed = () => {
+    const timer = data.sleepTimer;
+    if (!timer?.start) return;
+    const end = timer.end ? new Date(timer.end) : new Date();
+    logTimerElapsed.textContent = formatSleepElapsed(new Date(timer.start), end);
+};
+
+const stopSleepTicker = () => {
+    if (!sleepTicker) return;
+    clearInterval(sleepTicker);
+    sleepTicker = null;
+};
+
+const startSleepTicker = () => {
+    stopSleepTicker();
+    if (!data.sleepTimer?.start || data.sleepTimer.end || !logSheet.classList.contains("open")) return;
+    sleepTicker = setInterval(updateSleepTimerElapsed, 1000);
+};
+
+const renderLogSheetMode = () => {
+    const timerMode = logKind === "sleep" && hasSleepTimer();
+    const timer = timerMode ? data.sleepTimer : null;
+
+    logTitle.classList.toggle("hidden", timerMode);
+    logManual.classList.toggle("hidden", timerMode);
+    logTimer.classList.toggle("hidden", !timerMode);
+    logMinus.classList.toggle("hidden", timerMode);
+    logPlus.classList.toggle("hidden", timerMode);
+    logTimerPlay.classList.toggle("hidden", logKind !== "sleep" || hasSleepTimer());
+
+    if (!timerMode) {
+        stopSleepTicker();
+        return;
+    }
+
+    logTimerStart.textContent = timeKey(new Date(timer.start));
+    logTimerEnd.textContent = timer.end ? timeKey(new Date(timer.end)) : "";
+    logTimerEnd.classList.toggle("hidden", !timer.end);
+    logTimerStop.classList.toggle("hidden", !!timer.end);
+    updateSleepTimerElapsed();
+    startSleepTicker();
+};
+
+const startSleepTimer = () => {
+    if (hasSleepTimer()) return;
+    const child = activeChild();
+    if (!child) return;
+    updateData((d) => {
+        d.sleepTimer = {childId: child.id, start: now(), end: null};
+    });
+    renderLogSheetMode();
+};
+
+const stopSleepTimer = () => {
+    if (!hasSleepTimer() || data.sleepTimer.end) return;
+    updateData((d) => {
+        d.sleepTimer.end = now();
+    });
+    renderLogSheetMode();
+};
+
+const sleepMinutesByDate = (start, end) => {
+    const result = new Map();
+    let cursor = new Date(start);
+    while (cursor < end) {
+        const date = dateKey(cursor);
+        const midnight = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+        const segmentEnd = end < midnight ? end : midnight;
+        const minutes = Math.round((segmentEnd - cursor) / 60000);
+        if (minutes > 0) result.set(date, (result.get(date) ?? 0) + minutes);
+        cursor = segmentEnd;
+    }
+    return result;
+};
+
+const confirmSleepTimer = () => {
+    const timer = data.sleepTimer;
+    if (!timer?.start) return;
+    const start = new Date(timer.start);
+    const end = timer.end ? new Date(timer.end) : new Date();
+    const minutesByDate = sleepMinutesByDate(start, end);
+
+    updateData((d) => {
+        minutesByDate.forEach((minutes, date) => {
+            const log = d.dailyLogs.find((item) => item.childId === timer.childId && item.date === date);
+            const total = Number(log?.values?.sleep) || 0;
+            setDailyLogValueIn(d, timer.childId, date, "sleep", total + minutes);
+        });
+        d.sleepTimer = null;
+    });
+
+    closeSheet();
+    renderLogRings();
+};
+
+const cancelLogSheet = () => {
+    if (logKind === "sleep" && hasSleepTimer()) {
+        updateData((d) => {
+            d.sleepTimer = null;
+        });
+    }
+    closeSheet();
+};
+
 const openLogSheet = (kind) => {
     const config = DAILY_LOG_METRICS[kind];
     const child = activeChild();
@@ -1829,6 +1958,7 @@ const openLogSheet = (kind) => {
     logValue.value = value == null ? "" : formatLogValue(value, config.decimals);
     logValue.inputMode = config.decimals ? "decimal" : "numeric";
     openSheet(logSheet);
+    renderLogSheetMode();
 };
 
 const shiftLogValue = (diff) => {
@@ -1839,6 +1969,10 @@ const shiftLogValue = (diff) => {
 };
 
 const applyLogValue = () => {
+    if (logKind === "sleep" && hasSleepTimer()) {
+        confirmSleepTimer();
+        return;
+    }
     const config = DAILY_LOG_METRICS[logKind];
     const child = activeChild();
     if (!child) return;
@@ -1859,7 +1993,9 @@ logValue.addEventListener("input", () => {
 
 logMinus.onclick = () => shiftLogValue(-1);
 logPlus.onclick = () => shiftLogValue(1);
-closeLog.onclick = closeSheet;
+logTimerPlay.onclick = startSleepTimer;
+logTimerStop.onclick = stopSleepTimer;
+closeLog.onclick = cancelLogSheet;
 applyLog.onclick = applyLogValue;
 
 logRings.onclick = (event) => {
@@ -3397,6 +3533,7 @@ document.querySelectorAll("input:not([type=file])").forEach((input) => {
     if (syncCurrentDayWeights()) saveData();
     await loadCatalogue();
     renderPage("calendar");
+    if (hasSleepTimer()) openLogSheet("sleep");
     navigator.serviceWorker?.register("sw.js", {updateViaCache: "none"});
 
     // the date changes while the app stays open: refresh age and the daily screen

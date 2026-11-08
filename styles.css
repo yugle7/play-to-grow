@@ -1130,12 +1130,39 @@ nav .active > svg {
     padding: 10px 16px;
 }
 
+#log-sheet {
+    height: 300px;
+}
+
 #log-sheet footer {
     display: flex;
     align-items: center;
     /*gap: 10px;*/
     width: 100%;
-    margin-top: 10px;
+    margin-top: auto;
+}
+
+#log-timer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.log-timer-head {
+    width: 100%;
+}
+
+.log-timer-elapsed {
+    font-size: 52px;
+    line-height: 1.1;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+#log-timer-stop {
+    min-height: 40px;
+    padding: 0 16px;
 }
 
 #log-sheet footer button {

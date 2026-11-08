@@ -144,6 +144,10 @@ Behavior:
 - The weight ring shows the current weight; its fill represents the change from the last recorded weight before that date. Gains and losses use opposite ring directions, with no fill when there is no earlier weight.
 - On the current date, the weight is synchronized with the child profile weight. Editing either one updates the other. Historical daily weights are never overwritten by profile edits.
 - Switching the selected date, switching the child, or reopening the app loads the matching values.
+- The sleep editor has a play control that starts one sleep interval. The running timer is stored in `sleepTimer` with exact start and end ISO timestamps.
+- While a timer exists, the sleep sheet shows its start time, live elapsed time and Stop/end state instead of the manual input. Only one timer can exist.
+- Stop records the end timestamp and freezes the elapsed time. OK adds the interval minutes to the existing sleep totals, splitting the interval by local calendar date at midnight. Cancel discards the interval.
+- Closing the sheet preserves a running or stopped timer. A stored timer restores the timer interface on reopening, and elapsed time is always recomputed from timestamps.
 
 ### 5.4 Day markers
 
@@ -541,6 +545,7 @@ const DATA_VERSION = 3;
     feedback: [],
     preferences: [],
     dailyLogs: [],
+    sleepTimer: null,
     settings: {},
     activities: []
 }
@@ -618,7 +623,19 @@ Kind is `interest`, `activity` or `difficulty`. Manual is `like`, `dislike` or `
 
 An empty metric is absent from `values`. A log with no values is removed. Older exports without `dailyLogs` remain valid. Legacy `feedSessions` is retained but ignored.
 
-### 13.6 Dates and durations
+### 13.6 Sleep timer
+
+```js
+{
+    childId,
+    start,  // ISO timestamp
+    end     // ISO timestamp or null while running
+}
+```
+
+One timer can exist at a time. Confirming adds its minutes to the sleep totals of the dates it covers. Stopped but unconfirmed timers remain stored until OK or Cancel.
+
+### 13.7 Dates and durations
 
 - Diary dates are local `YYYY-MM-DD` strings.
 - Age is calculated from local calendar dates.
@@ -717,6 +734,7 @@ The implementation is complete when these checks pass:
 - New Activity is full-screen, validates fields, saves a custom activity and returns to Activity.
 - Calendar month navigation and date selection work.
 - The eight daily tracking rings show values, labels and units, open the editor, and persist per child and date.
+- The sleep timer starts, stops, restores and confirms correctly, including intervals crossing midnight.
 - Clearing a daily tracking value leaves the field empty.
 - Completed and partially completed entries create correctly sized, coloured markers.
 - The daily list shows titles, durations, status and feedback indicators.
