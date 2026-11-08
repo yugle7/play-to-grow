@@ -854,17 +854,6 @@ const translatePage = () => {
 // 7. STORAGE
 // ==========================================================================
 
-const migrateDataVersion = (value) => {
-    if (value.version !== 1) return false;
-    if (Array.isArray(value.children)) {
-        value.children.forEach((child) => {
-            if (Number.isFinite(child.weight)) child.weight = Math.round(child.weight * 1000);
-        });
-    }
-    value.version = DATA_VERSION;
-    return true;
-};
-
 const emptyData = () => ({
     version: DATA_VERSION,
     children: [],
@@ -884,17 +873,6 @@ const loadData = () => {
         data = {...emptyData(), ...JSON.parse(raw)};
         if (!Array.isArray(data.activities)) data.activities = [];
         if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
-        let migrated = migrateDataVersion(data);
-        if (Array.isArray(data.children)) {
-            data.children.forEach((child) => {
-                const gender = normalizeChildGender(child.gender);
-                if (child.gender !== gender) {
-                    child.gender = gender;
-                    migrated = true;
-                }
-            });
-        }
-        if (migrated) saveData();
     } catch {
         // keep unreadable data aside instead of overwriting it
         localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
@@ -935,9 +913,8 @@ const importData = (imported) => {
     data = {...emptyData(), ...imported};
     if (!Array.isArray(data.activities)) data.activities = [];
     if (!Array.isArray(data.dailyLogs)) data.dailyLogs = [];
-    migrateDataVersion(data);
-    data.children.forEach((child) => (child.gender = normalizeChildGender(child.gender)));
-    if (!activeChild()) data.activeChildId = data.children[0]?.id ?? null;
+    syncCurrentDayWeights();
+    if (!activeChild() && data.children.length) data.activeChildId = data.children[0].id;
     refreshCatalogue();
     saveData();
 };
@@ -1103,9 +1080,14 @@ const createChild = (fields) =>
         };
         d.children.push(child);
         d.activeChildId = child.id;
+        if (child.weight != null) setWeightIn(d, child.id, child.weight);
     });
 
-const editChild = (child, fields) => updateData(() => Object.assign(child, fields, {updatedAt: now()}));
+const editChild = (child, fields) =>
+    updateData((d) => {
+        Object.assign(child, fields, {updatedAt: now()});
+        if ("weight" in fields) setWeightIn(d, child.id, fields.weight);
+    });
 
 const deleteChild = (id) =>
     updateData((d) => {
@@ -1579,17 +1561,49 @@ const dailyLogFor = (childId, date) =>
 
 const dailyLogValues = (childId, date) => dailyLogFor(childId, date)?.values ?? {};
 
+const setDailyLogValueIn = (d, childId, date, kind, value) => {
+    let log = d.dailyLogs.find((item) => item.childId === childId && item.date === date);
+    if (!log && value == null) return;
+    if (!log) {
+        log = {childId, date, values: {}};
+        d.dailyLogs.push(log);
+    }
+    if (value == null) delete log.values[kind];
+    else log.values[kind] = value;
+    if (!Object.keys(log.values).length) d.dailyLogs = d.dailyLogs.filter((item) => item !== log);
+};
+
+const setWeightIn = (d, childId, weight) => {
+    const child = d.children.find((item) => item.id === childId);
+    if (!child) return;
+    child.weight = weight;
+    child.updatedAt = now();
+    setDailyLogValueIn(d, childId, dateKey(), "weight", weight);
+};
+
+const syncCurrentDayWeights = () => {
+    const date = dateKey();
+    let changed = false;
+    data.children.forEach((child) => {
+        const logged = dailyLogValues(child.id, date).weight;
+        if (child.weight != null) {
+            if (logged !== child.weight) {
+                setDailyLogValueIn(data, child.id, date, "weight", child.weight);
+                changed = true;
+            }
+        } else if (logged != null) {
+            child.weight = logged;
+            child.updatedAt = now();
+            changed = true;
+        }
+    });
+    return changed;
+};
+
 const setDailyLogValue = (childId, date, kind, value) =>
     updateData((d) => {
-        let log = d.dailyLogs.find((item) => item.childId === childId && item.date === date);
-        if (!log && value == null) return;
-        if (!log) {
-            log = {childId, date, values: {}};
-            d.dailyLogs.push(log);
-        }
-        if (value == null) delete log.values[kind];
-        else log.values[kind] = value;
-        if (!Object.keys(log.values).length) d.dailyLogs = d.dailyLogs.filter((item) => item !== log);
+        if (kind === "weight" && date === dateKey()) setWeightIn(d, childId, value);
+        else setDailyLogValueIn(d, childId, date, kind, value);
     });
 
 const formatLogValue = (value, decimals = 0) => {
@@ -1617,21 +1631,21 @@ const parseLogNumber = (value) => {
 
 const RING_LENGTH = 2 * Math.PI * 28;
 
-const ringHtml = ({kind, value, target, label, unit, color, decimals}) => {
+const ringHtml = ({kind, value, delta, target, label, unit, color, decimals}) => {
     target = Math.max(1, target);
     const valueText = value == null ? "0" : formatLogValue(value, decimals);
+    const progress = delta ?? value ?? 0;
     let ring = "";
 
     if (value != null) {
-        const delta = value;
-        if (Math.abs(delta) > target) {
-            const arrow = delta > 0 ? "M 29 0 L 32 4 L 29 9" : "M 35 0 L 32 4 L 35 9";
+        if (Math.abs(progress) > target) {
+            const arrow = progress > 0 ? "M 29 0 L 32 4 L 29 9" : "M 35 0 L 32 4 L 35 9";
             ring = `<circle class="fill" cx="32" cy="32" r="28" stroke="var(${color})" />`;
-            ring += `<path d="${arrow}" stroke="var(--bg)" stroke-width="2" transform="rotate(${(360 * delta) / target} 32 32)"/>`;
+            ring += `<path d="${arrow}" stroke="var(--bg)" stroke-width="2" transform="rotate(${(360 * progress) / target} 32 32)"/>`;
         } else {
-            const ratio = Math.abs(delta / target);
+            const ratio = Math.abs(progress / target);
             const length = RING_LENGTH * ratio;
-            const angle = 90 + (delta < 0) * 360 * ratio;
+            const angle = 90 + (progress < 0) * 360 * ratio;
             ring = `<circle class="fill" cx="32" cy="32" r="28"
                 style="stroke:var(${color});stroke-dasharray:${length} ${RING_LENGTH}"
                 transform="rotate(-${angle} 32 32)"/>`;
@@ -1648,6 +1662,13 @@ const ringHtml = ({kind, value, target, label, unit, color, decimals}) => {
     </button>`;
 };
 
+const previousDailyLogValue = (childId, date, kind) => {
+    const previous = data.dailyLogs
+        .filter((log) => log.childId === childId && log.date < date && log.values?.[kind] != null)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    return previous.at(-1)?.values[kind] ?? null;
+};
+
 const renderLogRings = () => {
     const child = activeChild();
     if (!child) {
@@ -1656,17 +1677,25 @@ const renderLogRings = () => {
     }
     const values = dailyLogValues(child.id, selectedDate);
     logRings.innerHTML = Object.entries(DAILY_LOG_METRICS)
-        .map(([kind, config]) =>
-            ringHtml({
+        .map(([kind, config]) => {
+            const value = values[kind];
+            const delta =
+                kind === "weight"
+                    ? value == null
+                        ? 0
+                        : value - (previousDailyLogValue(child.id, selectedDate, kind) ?? value)
+                    : value;
+            return ringHtml({
                 kind,
-                value: values[kind],
+                value,
+                delta,
                 target: config.target,
                 label: S.dailyLogLabels[kind],
                 unit: S.dailyLogUnits[kind],
                 color: config.color,
                 decimals: config.decimals,
-            }),
-        )
+            });
+        })
         .join("");
 };
 
@@ -3005,7 +3034,7 @@ childBirthInput.addEventListener("blur", saveChildOnBlur);
 childDueInput.addEventListener("blur", saveChildOnBlur);
 childWeightInput.addEventListener("blur", saveChildOnBlur);
 childWeightInput.addEventListener("input", () => {
-    childWeightInput.value = normalizeLogNumber(childWeightInput.value, 100000, 0);
+    childWeightInput.value = normalizeLogNumber(childWeightInput.value, 9999, 0);
 });
 onSegment(childGender, "gender", (value) => {
     formGender = value;
@@ -3346,6 +3375,7 @@ document.querySelectorAll("input:not([type=file])").forEach((input) => {
 (async () => {
     translatePage();
     loadData();
+    if (syncCurrentDayWeights()) saveData();
     await loadCatalogue();
     renderPage("calendar");
     navigator.serviceWorker?.register("sw.js", {updateViaCache: "none"});

@@ -32,7 +32,7 @@ The app has five sections in the bottom navigation:
 
 | Section        | Description                                                                                                                                                                |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its editable daily tracking rings, activity list and feedback summary. |
+| **Calendar**   | Monthly activity diary. Days with completed activities show coloured circles sized by total duration and coloured by the dominant developmental area. Selecting a day shows its editable daily tracking rings, activity list and feedback summary. The weight ring shows the change from the last earlier weight record. |
 | **Activity**   | Full-screen activity entry opened from the middle navigation button: name input with suggestions, Search and New Activity pages, a recommendation refresh button, full activity description, and the feedback form with actual duration. Save closes back to Calendar. |
 | **Statistics** | Charts for the selected child: activity frequency, time spent, developmental areas, consistency, feedback over time, and positive activities and skills. |
 | **Child**      | Child profile: name, date of birth, estimated due date (optional), weight (optional), age, and gender. Skills, interests, and activity conditions. Multiple children can be added. |
@@ -157,7 +157,7 @@ Empty values (`false`, `null`) are skipped, so you can use expressions such as `
 
 ### Bottom Sheets and Confirmation Dialog
 
-The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`. Version 1 child weights are converted from kilograms to grams.
+The child profile form is displayed inline on the Child page and uses the same validation logic for creating and editing children. Existing unspecified genders are migrated to `boy`; legacy `female` and `male` values become `girl` and `boy`. Version 1 child and daily-log weights are converted from kilograms to grams. The current-day weight is synchronized with the child profile; historical daily weights are not overwritten by profile edits.
 
 The option picker is a `.sheet` element displayed over the `#overlay` backdrop, opened and closed using `openSheet()` / `closeSheet()`. Activity, activity search, and activity creation are full-screen pages using the shared `scroll` / `width-500` / `pad-20` page structure. Activity and New Activity use `cta-space` with fixed action buttons. They are switched with `renderPage()`.
 
@@ -268,7 +268,7 @@ Data is not synchronised between devices or browsers. To transfer it, use "Expor
     childId: "...",
     date: "2026-11-08",
     values: {
-        weight: 7.5,       // kg, decimal
+        weight: 7500,      // grams, integer
         poop: 2,           // times
         pee: 6,            // times
         sleep: 1.5,        // hours, decimal
@@ -479,7 +479,7 @@ Offline functionality is handled by `sw.js` (the service worker).
 - On subsequent loads, each file is served from the cache first (which is fast and works offline), while a fresh version is downloaded in the background. This means **changes appear from the second time the app is opened**. An already open page is never reloaded automatically.
 - External links (videos and sources) are not cached and cannot be opened without an internet connection.
 
-**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"59"` → `"60"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
+**When releasing a new version**, increment `CACHE_VERSION` in `sw.js` (for example, `"61"` → `"62"`). The old cache will then be deleted, and the files will be downloaded again. If you add a new file, include it in `APP_SHELL`.
 
 User data is stored in `localStorage`, not in the cache, so app updates do not affect it.
 
